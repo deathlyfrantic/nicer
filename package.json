@@ -1,0 +1,88 @@
+{
+  "name": "nicer",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "classnames": "^2.2.5",
+    "electron": "^1.7.9",
+    "irc": "^0.5.2",
+    "node-gyp": "^3.6.2",
+    "prop-types": "^15.6.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-redux": "^5.0.6",
+    "redux": "^3.7.2"
+  },
+  "main": "build/main.js",
+  "scripts": {
+    "build": "$(npm bin)/babel src -d build --copy-files",
+    "watch": "$(npm bin)/babel --watch src -d build --source-maps inline --copy-files",
+    "start": "npm run build && electron .",
+    "flow": "flow"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.1",
+    "babel-preset-flow": "^6.23.0",
+    "eslint": "^4.13.1",
+    "eslint-plugin-flowtype": "^2.41.0",
+    "eslint-plugin-react": "^7.5.1",
+    "flow-bin": "^0.63.1",
+    "prettier": "^1.9.1"
+  },
+  "babel": {
+    "presets": [
+      "react",
+      "env",
+      "flow"
+    ]
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es6": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended",
+      "plugin:flowtype/recommended"
+    ],
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "ecmaFeatures": {
+        "experimentalObjectRestSpread": true,
+        "jsx": true
+      },
+      "sourceType": "module"
+    },
+    "plugins": [
+      "react",
+      "flowtype"
+    ],
+    "rules": {
+      "indent": [
+        "error",
+        2,
+        {
+          "SwitchCase": 1
+        }
+      ],
+      "linebreak-style": [
+        "error",
+        "unix"
+      ],
+      "quotes": [
+        "error",
+        "double"
+      ],
+      "semi": [
+        "error",
+        "always"
+      ]
+    }
+  }
+}
