@@ -13,12 +13,12 @@ import type {
 // commands
 export const commandConnect = (server: string, nick: string): ThunkAction => {
   return dispatch => {
-    return {
+    return dispatch({
       type: "COMMAND_CONNECT",
       server,
       nick,
       dispatch
-    };
+    });
   };
 };
 
@@ -27,12 +27,12 @@ export const commandDisconnect = (
   message: string = ""
 ): ThunkAction => {
   return dispatch => {
-    return {
+    return dispatch({
       type: "COMMAND_DISCONNECT",
       id,
       message,
       dispatch
-    };
+    });
   };
 };
 
@@ -71,11 +71,11 @@ export const eventConnect = (
   };
 };
 
-export const eventMotd = (id: Id, message: string): EventMotdAction => {
+export const eventMotd = (id: Id, motd: string): EventMotdAction => {
   return {
     type: "EVENT_MOTD",
     id,
-    message
+    motd
   };
 };
 
@@ -85,13 +85,13 @@ export const eventJoin = (
   nick: string
 ): ThunkAction => {
   return dispatch => {
-    return {
+    return dispatch({
       type: "EVENT_JOIN",
       id,
       channel,
       nick,
       dispatch
-    };
+    });
   };
 };
 
@@ -102,14 +102,14 @@ export const eventPart = (
   reason: string
 ): ThunkAction => {
   return dispatch => {
-    return {
+    return dispatch({
       type: "EVENT_PART",
       id,
       channel,
       nick,
       reason,
       dispatch
-    };
+    });
   };
 };
 
@@ -130,10 +130,10 @@ export const setActiveView = (
 // misc
 export const removeConnection = (id: Id): ThunkAction => {
   return dispatch => {
-    return {
+    return dispatch({
       type: "REMOVE_CONNECTION",
       id,
       dispatch
-    };
+    });
   };
 };

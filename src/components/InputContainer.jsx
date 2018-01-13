@@ -32,13 +32,23 @@ const mapStateToProps = (state: State) => {
 const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     processCommand(text, active, channel) {
+      console.log("processCommand with args:");
+      console.dir(text);
+      console.dir(active);
+      console.dir(channel);
       if (text === "") {
+        console.log('text === ""');
         return;
       }
       if (text.startsWith("/")) {
+        console.log("text startswith /");
         // handle command here
         const words = text.split(/\s+/);
-        const cmd = words.shift().substring(1);
+        const cmd = words
+          .shift()
+          .substring(1)
+          .toLowerCase();
+        console.log("cmd is " + cmd);
         switch (cmd) {
           case "connect":
             if (words.length < 2) {

@@ -87,7 +87,7 @@ export type EventConnectAction = {
 export type EventMotdAction = {
   type: "EVENT_MOTD",
   id: Id,
-  message: string
+  motd: string
 };
 
 export type EventJoinAction = {

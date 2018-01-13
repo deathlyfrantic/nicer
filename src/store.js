@@ -1,6 +1,6 @@
 // @flow
 import { createStore, applyMiddleware } from "redux";
-import thunkMiddleware from "redux-thunk";
+import thunk from "redux-thunk";
 import reducer from "./reducers";
 
 // // from https://lazamar.github.io/dispatching-from-inside-of-reducers/
@@ -23,5 +23,5 @@ import reducer from "./reducers";
 //   flushQueue();
 // };
 
-const store = createStore(reducer, applyMiddleware(thunkMiddleware));
+const store = createStore(reducer, applyMiddleware(thunk));
 export default store;
