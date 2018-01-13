@@ -2,7 +2,7 @@
 import { connect } from "react-redux";
 import ChatInputBox from "./ChatInputBox";
 import * as actions from "../actions";
-import type { State, Dispatch } from "../types";
+import type { State } from "../types";
 
 const commands = [
   "connect",
@@ -29,7 +29,7 @@ const mapStateToProps = (state: State) => {
   return { active: state.active, commands, nicks, channel };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
+const mapDispatchToProps = (dispatch: Function) => {
   return {
     processCommand(text, active, channel) {
       console.log("processCommand with args:");

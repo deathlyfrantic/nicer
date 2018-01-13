@@ -1,12 +1,12 @@
 // @flow
 import React, { Component, Fragment } from "react";
 import classnames from "classnames";
-import type { Connection, Active, Id, ActiveType, ThunkAction } from "../types";
+import type { Connection, Active, Id, ActiveType, Action } from "../types";
 
 type Props = {
   connections: Array<Connection>,
   active: Active,
-  setActiveView: (connectionId: Id, type: ActiveType, id: Id) => ThunkAction
+  setActiveView: (connectionId: Id, type: ActiveType, id: Id) => Action
 };
 
 class Sidebar extends Component<Props> {
