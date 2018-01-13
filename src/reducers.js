@@ -145,7 +145,8 @@ export default (state: State = initial, action: ThunkAction): State => {
         })
       });
 
-    case "EVENT_JOIN":
+    case "EVENT_JOIN": {
+      let newActive = state.active;
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
           if (conn.id === action.id) {
@@ -159,7 +160,7 @@ export default (state: State = initial, action: ThunkAction): State => {
                 messages: [],
                 users: [action.nick]
               });
-              action.dispatch(actions.setActiveView(conn.id, "channel", id));
+              newActive = { connectionId: conn.id, type: "channel", id: id };
             } else {
               // we were already in this channel so probably someone else joined
               if (chan.users.find(action.nick) === undefined) {
@@ -168,8 +169,10 @@ export default (state: State = initial, action: ThunkAction): State => {
             }
           }
           return conn;
-        })
+        }),
+        active: newActive
       });
+    }
 
     case "EVENT_PART":
       return Object.assign({}, state, {
