@@ -1,46 +1,33 @@
 // @flow
-import type {
-  Id,
-  ActiveType,
-  ThunkAction,
-  CommandJoinAction,
-  CommandPartAction,
-  EventConnectAction,
-  EventMotdAction,
-  SetActiveViewAction
-} from "./types";
+import type { Id, ActiveType, Action } from "./types";
+
+const asyncDispatch = () => {};
 
 // commands
-export const commandConnect = (server: string, nick: string): ThunkAction => {
-  return dispatch => {
-    return dispatch({
-      type: "COMMAND_CONNECT",
-      server,
-      nick,
-      dispatch
-    });
+export const commandConnect = (server: string, nick: string): Action => {
+  return {
+    type: "COMMAND_CONNECT",
+    server,
+    nick,
+    asyncDispatch
   };
 };
 
-export const commandDisconnect = (
-  id: Id,
-  message: string = ""
-): ThunkAction => {
-  return dispatch => {
-    return dispatch({
-      type: "COMMAND_DISCONNECT",
-      id,
-      message,
-      dispatch
-    });
+export const commandDisconnect = (id: Id, message: string = ""): Action => {
+  return {
+    type: "COMMAND_DISCONNECT",
+    id,
+    message,
+    asyncDispatch
   };
 };
 
-export const commandJoin = (id: Id, channel: string): CommandJoinAction => {
+export const commandJoin = (id: Id, channel: string): Action => {
   return {
     type: "COMMAND_JOIN",
     id,
-    channel
+    channel,
+    asyncDispatch
   };
 };
 
@@ -48,50 +35,43 @@ export const commandPart = (
   id: Id,
   channel: string,
   reason: string = ""
-): CommandPartAction => {
+): Action => {
   return {
     type: "COMMAND_PART",
     id,
     channel,
-    reason
+    reason,
+    asyncDispatch
   };
 };
 
 // events
-export const eventConnect = (
-  id: Id,
-  server: string,
-  nick: string
-): EventConnectAction => {
+export const eventConnect = (id: Id, server: string, nick: string): Action => {
   return {
     type: "EVENT_CONNECT",
     id,
     server,
-    nick
+    nick,
+    asyncDispatch
   };
 };
 
-export const eventMotd = (id: Id, motd: string): EventMotdAction => {
+export const eventMotd = (id: Id, motd: string): Action => {
   return {
     type: "EVENT_MOTD",
     id,
-    motd
+    motd,
+    asyncDispatch
   };
 };
 
-export const eventJoin = (
-  id: Id,
-  channel: string,
-  nick: string
-): ThunkAction => {
-  return dispatch => {
-    return dispatch({
-      type: "EVENT_JOIN",
-      id,
-      channel,
-      nick,
-      dispatch
-    });
+export const eventJoin = (id: Id, channel: string, nick: string): Action => {
+  return {
+    type: "EVENT_JOIN",
+    id,
+    channel,
+    nick,
+    asyncDispatch
   };
 };
 
@@ -100,16 +80,14 @@ export const eventPart = (
   channel: string,
   nick: string,
   reason: string
-): ThunkAction => {
-  return dispatch => {
-    return dispatch({
-      type: "EVENT_PART",
-      id,
-      channel,
-      nick,
-      reason,
-      dispatch
-    });
+): Action => {
+  return {
+    type: "EVENT_PART",
+    id,
+    channel,
+    nick,
+    reason,
+    asyncDispatch
   };
 };
 
@@ -118,22 +96,21 @@ export const setActiveView = (
   connectionId: Id,
   activeType: ActiveType,
   id: Id
-): SetActiveViewAction => {
+): Action => {
   return {
     type: "SET_ACTIVE_VIEW",
     connectionId,
     activeType,
-    id
+    id,
+    asyncDispatch
   };
 };
 
 // misc
-export const removeConnection = (id: Id): ThunkAction => {
-  return dispatch => {
-    return dispatch({
-      type: "REMOVE_CONNECTION",
-      id,
-      dispatch
-    });
+export const removeConnection = (id: Id): Action => {
+  return {
+    type: "REMOVE_CONNECTION",
+    id,
+    asyncDispatch
   };
 };

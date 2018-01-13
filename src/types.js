@@ -54,40 +54,44 @@ export type CommandConnectAction = {
   type: "COMMAND_CONNECT",
   server: string,
   nick: string,
-  dispatch: Dispatch
+  asyncDispatch: Function
 };
 
 export type CommandDisconnectAction = {
   type: "COMMAND_DISCONNECT",
   id: Id,
   message: string,
-  dispatch: Dispatch
+  asyncDispatch: Function
 };
 
 export type CommandJoinAction = {
   type: "COMMAND_JOIN",
   id: Id,
-  channel: string
+  channel: string,
+  asyncDispatch: Function
 };
 
 export type CommandPartAction = {
   type: "COMMAND_PART",
   id: Id,
   channel: string,
-  reason: string
+  reason: string,
+  asyncDispatch: Function
 };
 
 export type EventConnectAction = {
   type: "EVENT_CONNECT",
   id: Id,
   server: string,
-  nick: string
+  nick: string,
+  asyncDispatch: Function
 };
 
 export type EventMotdAction = {
   type: "EVENT_MOTD",
   id: Id,
-  motd: string
+  motd: string,
+  asyncDispatch: Function
 };
 
 export type EventJoinAction = {
@@ -95,7 +99,7 @@ export type EventJoinAction = {
   id: Id,
   channel: string,
   nick: string,
-  dispatch: Dispatch
+  asyncDispatch: Function
 };
 
 export type EventPartAction = {
@@ -104,20 +108,21 @@ export type EventPartAction = {
   channel: string,
   nick: string,
   reason: string,
-  dispatch: Dispatch
+  asyncDispatch: Function
 };
 
 export type SetActiveViewAction = {
   type: "SET_ACTIVE_VIEW",
   connectionId: Id,
   activeType: ActiveType,
-  id: Id
+  id: Id,
+  asyncDispatch: Function
 };
 
 export type RemoveConnectionAction = {
   type: "REMOVE_CONNECTION",
   id: Id,
-  dispatch: Dispatch
+  asyncDispatch: Function
 };
 
 export type Action =
@@ -131,9 +136,3 @@ export type Action =
   | EventPartAction
   | SetActiveViewAction
   | RemoveConnectionAction;
-
-export type Dispatch = (action: Action | ThunkAction | Array<Action>) => any;
-export type GetState = () => State;
-export type ThunkAction = (
-  dispatch: Dispatch
-) => Action | ThunkAction | Array<Action>;

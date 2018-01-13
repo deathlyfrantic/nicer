@@ -1,7 +1,7 @@
 // @flow
 import { connect } from "react-redux";
 import ChatWindow from "./ChatWindow";
-import type { State, Dispatch } from "../types";
+import type { State } from "../types";
 
 const mapStateToProps = (state: State) => {
   let messages = [];
@@ -31,7 +31,7 @@ const mapStateToProps = (state: State) => {
   return { messages };
 };
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
+const mapDispatchToProps = (dispatch: Function) => {
   return {};
 };
 

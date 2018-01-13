@@ -2,7 +2,7 @@
 import irc from "irc";
 import * as actions from "./actions";
 
-import type { State, ThunkAction, Id, Connection, Dispatch } from "./types";
+import type { State, Id, Connection, Action } from "./types";
 
 let uniqueId: number = 0;
 const nextId = (): number => uniqueId++;
@@ -20,7 +20,7 @@ const newClient = (
   id: Id,
   server: string,
   nick: string,
-  dispatch: Dispatch
+  dispatch: Function
 ): irc.Client => {
   const client = new irc.Client(server, nick, {
     stripColors: true,
@@ -51,7 +51,7 @@ const findConnectionById = (state: State, id: Id): Connection => {
   throw new Error(`Unable to find connection with id ${id}.`);
 };
 
-export default (state: State = initial, action: ThunkAction): State => {
+export default (state: State = initial, action: Action): State => {
   console.log("action:"); // eslint-disable-line
   console.dir(action); // eslint-disable-line
   console.log("state:"); // eslint-disable-line
@@ -59,7 +59,12 @@ export default (state: State = initial, action: ThunkAction): State => {
   switch (action.type) {
     case "COMMAND_CONNECT": {
       const id = nextId();
-      const client = newClient(id, action.server, action.nick, action.dispatch);
+      const client = newClient(
+        id,
+        action.server,
+        action.nick,
+        action.asyncDispatch
+      );
       return Object.assign({}, state, {
         connections: state.connections.concat({
           id,
@@ -74,11 +79,12 @@ export default (state: State = initial, action: ThunkAction): State => {
       });
     }
 
-    case "COMMAND_DISCONNECT":
+    case "COMMAND_DISCONNECT": {
+      const id = action.id;
       state.connections.forEach(conn => {
-        if (conn.id === action.id) {
+        if (conn.id === id) {
           const remove = () => {
-            action.dispatch(actions.removeConnection(conn.id));
+            action.asyncDispatch(actions.removeConnection(conn.id));
           };
           if (action.message) {
             conn.client.disconnect(action.message, remove);
@@ -88,6 +94,7 @@ export default (state: State = initial, action: ThunkAction): State => {
         }
       });
       return state;
+    }
 
     case "COMMAND_JOIN":
       try {
@@ -111,10 +118,11 @@ export default (state: State = initial, action: ThunkAction): State => {
       }
       return state;
 
-    case "EVENT_CONNECT":
+    case "EVENT_CONNECT": {
+      const id = action.id;
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
-          if (conn.id === action.id) {
+          if (conn.id === id) {
             conn.connected = true;
           }
           return conn;
@@ -125,13 +133,15 @@ export default (state: State = initial, action: ThunkAction): State => {
           id: action.id
         }
       });
+    }
 
-    case "EVENT_MOTD":
+    case "EVENT_MOTD": {
+      const [id, motd] = [action.id, action.motd];
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
           const time = new Date();
-          if (conn.id === action.id) {
-            action.motd.split("\n").forEach(text => {
+          if (conn.id === id) {
+            motd.split("\n").forEach(text => {
               conn.messages.push({
                 id: nextId(),
                 text,
@@ -144,53 +154,54 @@ export default (state: State = initial, action: ThunkAction): State => {
           return conn;
         })
       });
+    }
 
     case "EVENT_JOIN": {
-      let newActive = state.active;
+      const [id, channel, nick] = [action.id, action.channel, action.nick];
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
-          if (conn.id === action.id) {
-            const chan = conn.channels.find(c => c.name === action.channel);
+          if (conn.id === id) {
+            const chan = conn.channels.find(c => c.name === channel);
             if (chan === undefined) {
               // we joined a channel we weren't in before
               const id = nextId();
               conn.channels.push({
                 id,
-                name: action.channel,
+                name: channel,
                 messages: [],
-                users: [action.nick]
+                users: [nick]
               });
-              newActive = { connectionId: conn.id, type: "channel", id: id };
+              action.asyncDispatch(conn.id, "channel", id);
             } else {
               // we were already in this channel so probably someone else joined
-              if (chan.users.find(action.nick) === undefined) {
-                chan.users.push(action.nick);
+              if (chan.users.find(u => u === nick) === undefined) {
+                chan.users.push(nick);
               }
             }
           }
           return conn;
-        }),
-        active: newActive
+        })
       });
     }
 
-    case "EVENT_PART":
+    case "EVENT_PART": {
+      const [id, channel, nick] = [action.id, action.channel, action.nick];
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
-          if (conn.id === action.id) {
-            const chan = conn.channels.find(c => c.name === action.channel);
+          if (conn.id === id) {
+            const chan = conn.channels.find(c => c.name === channel);
             if (chan !== undefined) {
-              if (conn.nick === action.nick) {
+              if (conn.nick === nick) {
                 // we left a channel, so remove it from our list
                 conn.channels = conn.channels.filter(c => c.id !== chan.id);
                 if (state.active.id === chan.id) {
-                  action.dispatch(
+                  action.asyncDispatch(
                     actions.setActiveView(conn.id, "connection", conn.id)
                   );
                 }
               } else {
                 // someone else left a channel, so remove them from it
-                chan.users = chan.users.filter(u => u !== action.nick);
+                chan.users = chan.users.filter(u => u !== nick);
                 // TODO: add "so and so left (reason)" message to channel
               }
             }
@@ -198,6 +209,7 @@ export default (state: State = initial, action: ThunkAction): State => {
           return conn;
         })
       });
+    }
 
     case "SET_ACTIVE_VIEW":
       return Object.assign({}, state, {
@@ -208,18 +220,19 @@ export default (state: State = initial, action: ThunkAction): State => {
         }
       });
 
-    case "REMOVE_CONNECTION":
+    case "REMOVE_CONNECTION": {
+      const id = action.id;
       return Object.assign({}, state, {
         connections: state.connections.filter(conn => {
-          if (conn.id === action.id) {
-            if (state.active.connectionId === action.id) {
-              const newConn = state.connections.find(c => c.id !== action.id);
+          if (conn.id === id) {
+            if (state.active.connectionId === id) {
+              const newConn = state.connections.find(c => c.id !== id);
               if (newConn !== undefined) {
-                action.dispatch(
+                action.asyncDispatch(
                   actions.setActiveView(newConn.id, "connection", newConn.id)
                 );
               } else {
-                action.dispatch(actions.setActiveView(-1, "", -1));
+                action.asyncDispatch(actions.setActiveView(-1, "", -1));
               }
             }
             return false;
@@ -227,8 +240,10 @@ export default (state: State = initial, action: ThunkAction): State => {
           return true;
         })
       });
+    }
 
     default:
+      (action: empty);
       return state;
   }
 };
