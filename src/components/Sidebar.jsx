@@ -1,15 +1,25 @@
+// @flow
 import React, { Component, Fragment } from "react";
-import PropTypes from "prop-types";
 import classnames from "classnames";
+import type { Connection, Active, Id, ActiveType, ThunkAction } from "../types";
 
-class Sidebar extends Component {
-  constructor(props) {
+type Props = {
+  connections: Array<Connection>,
+  active: Active,
+  setActiveView: (connectionId: Id, type: ActiveType, id: Id) => ThunkAction
+};
+
+class Sidebar extends Component<Props> {
+  renderConnections: () => Fragment;
+  renderChannels: Connection => Component<*>;
+
+  constructor(props: Props) {
     super(props);
     this.renderConnections = this.renderConnections.bind(this);
     this.renderChannels = this.renderChannels.bind(this);
   }
 
-  renderChannels(connection) {
+  renderChannels(connection: Connection) {
     return connection.channels.map(channel => {
       const classes = classnames("channel-label", {
         active: channel.id === this.props.active.id
@@ -46,7 +56,7 @@ class Sidebar extends Component {
               )
             }
           >
-            {connection.server}
+            {connection.name}
           </div>
           {this.renderChannels(connection)}
         </Fragment>
@@ -58,16 +68,5 @@ class Sidebar extends Component {
     return <div id="sidebar">{this.renderConnections()}</div>;
   }
 }
-
-Sidebar.defaultProps = {
-  connections: [],
-  active: {}
-};
-
-Sidebar.propTypes = {
-  connections: PropTypes.array,
-  active: PropTypes.object,
-  setActiveView: PropTypes.func.isRequired
-};
 
 export default Sidebar;

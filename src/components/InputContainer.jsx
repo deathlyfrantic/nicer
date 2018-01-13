@@ -1,6 +1,8 @@
+// @flow
 import { connect } from "react-redux";
 import ChatInputBox from "./ChatInputBox";
 import * as actions from "../actions";
+import type { State, Dispatch } from "../types";
 
 const commands = [
   "connect",
@@ -13,7 +15,7 @@ const commands = [
   "quit"
 ];
 
-const mapStateToProps = state => {
+const mapStateToProps = (state: State) => {
   let nicks = [];
   const conn = state.connections.find(c => c.id === state.active.connectionId);
   let channel = "";
@@ -27,7 +29,7 @@ const mapStateToProps = state => {
   return { active: state.active, commands, nicks, channel };
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     processCommand(text, active, channel) {
       if (text === "") {
