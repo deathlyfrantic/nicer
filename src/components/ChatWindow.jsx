@@ -1,8 +1,18 @@
+// @flow
 import React, { Component } from "react";
-import PropTypes from "prop-types";
+import type { Message } from "../types";
+import type { Node } from "react";
 
-class ChatWindow extends Component {
-  constructor(props) {
+type Props = {
+  messages: Array<Message>
+};
+
+class ChatWindow extends Component<Props> {
+  renderMessages: () => Node;
+  scrollToBottom: () => typeof undefined;
+  window: ?HTMLDivElement;
+
+  constructor(props: Props) {
     super(props);
     this.renderMessages = this.renderMessages.bind(this);
     this.scrollToBottom = this.scrollToBottom.bind(this);
@@ -12,7 +22,11 @@ class ChatWindow extends Component {
     return this.props.messages.map(msg => {
       return (
         <div key={msg.id} className="message">
-          {msg.author ? <span className="author">{msg.author}</span> : ""}
+          {msg.type === "normal" ? (
+            <span className="author">{msg.user}</span>
+          ) : (
+            ""
+          )}
           <span className="text">{msg.text}</span>
         </div>
       );
@@ -20,7 +34,9 @@ class ChatWindow extends Component {
   }
 
   scrollToBottom() {
-    this.window.scrollTop = this.window.scrollHeight;
+    if (this.window) {
+      this.window.scrollTop = this.window.scrollHeight;
+    }
   }
 
   componentDidUpdate() {
@@ -35,13 +51,5 @@ class ChatWindow extends Component {
     );
   }
 }
-
-ChatWindow.defaultProps = {
-  messages: []
-};
-
-ChatWindow.propTypes = {
-  messages: PropTypes.array
-};
 
 export default ChatWindow;

@@ -1,187 +1,169 @@
+// @flow
 import irc from "irc";
-import * as actionTypes from "./action-types";
 import * as actions from "./actions";
 
-let uniqueId = 0;
-const nextId = () => uniqueId++;
+import type { State, ThunkAction, Id, Connection, Dispatch } from "./types";
 
-const initial = {
-  clients: [], // irc.Clients go here
-  connections: [
-    // {
-    //   id: 0,
-    //   name: "irc.foo.bar",
-    //   nick: "KewlDewd69", // nice
-    //   channels: [
-    //     {
-    //       id: 0,
-    //       name: "string",
-    //       messages: [{ author: "string", text: "string", time: Date }],
-    //       users: [nick, nick2, nick3]
-    //     }
-    //   ],
-    //   queries: [
-    //     {
-    //       id: 0,
-    //       name: "string",
-    //       messages: [{ text: "string", time: Date }]
-    //     }
-    //   ],
-    //   messages: [
-    //      {
-    //        id: 0,
-    //        text: "string",
-    //        time: Date
-    //      }
-    //  ]
-    // }
-  ],
+let uniqueId: number = 0;
+const nextId = (): number => uniqueId++;
+
+const initial: State = {
+  connections: [],
   active: {
     connectionId: -1,
-    type: "", // | "channel" | "query" | "connection",
+    type: "",
     id: -1
   }
 };
 
-const newClient = (server: string, nick: string, dispatch: object) => {
+const newClient = (
+  id: Id,
+  server: string,
+  nick: string,
+  dispatch: Dispatch
+): irc.Client => {
   const client = new irc.Client(server, nick, {
     stripColors: true,
     autoConnect: false
   });
-  client.id = nextId();
-  client.server = server;
   client.on("registered", () => {
-    dispatch(actions.eventConnect(client.id, client.server, client.nick));
+    dispatch(actions.eventConnect(id, client.server, client.nick));
   });
   client.on("motd", motd => {
-    dispatch(actions.eventMotd(client.id, motd));
+    dispatch(actions.eventMotd(id, motd));
   });
   client.on("join", (channel, nick) => {
-    dispatch(actions.eventJoin(client.id, channel, nick));
+    dispatch(actions.eventJoin(id, channel, nick));
   });
   client.on("part", (channel, nick, reason) => {
-    dispatch(actions.eventPart(client.id, channel, nick, reason));
+    dispatch(actions.eventPart(id, channel, nick, reason));
   });
   // do all the on('foo') stuff here
   client.connect();
   return client;
 };
 
-const findById = (items, id) => {
-  const item = items.find(i => i.id === id);
-  if (item !== undefined) {
-    return item;
+const findConnectionById = (state: State, id: Id): Connection => {
+  const conns = state.connections.filter(c => c.id === id);
+  if (conns.length > 0) {
+    return conns[0];
   }
-  throw new Error(`Unable to find item with id ${id}.`);
+  throw new Error(`Unable to find connection with id ${id}.`);
 };
 
-export default (state = initial, action) => {
+export default (state: State = initial, action: ThunkAction): State => {
   console.log("action:"); // eslint-disable-line
   console.dir(action); // eslint-disable-line
   console.log("state:"); // eslint-disable-line
   console.dir(state); // eslint-disable-line
   switch (action.type) {
-    case actionTypes.COMMAND_CONNECT: {
-      const client = newClient(
-        action.payload.server,
-        action.payload.nick,
-        action.asyncDispatch
-      );
+    case "COMMAND_CONNECT": {
+      const id = nextId();
+      const client = newClient(id, action.server, action.nick, action.dispatch);
       return Object.assign({}, state, {
-        clients: state.clients.concat(client)
+        connections: state.connections.concat({
+          id,
+          client,
+          connected: false,
+          name: action.server,
+          nick: action.nick,
+          channels: [],
+          queries: [],
+          messages: []
+        })
       });
     }
 
-    case actionTypes.COMMAND_DISCONNECT:
+    case "COMMAND_DISCONNECT":
+      state.connections.forEach(conn => {
+        if (conn.id === action.id) {
+          const remove = () => {
+            action.dispatch(actions.removeConnection(conn.id));
+          };
+          if (action.message) {
+            conn.client.disconnect(action.message, remove);
+          } else {
+            conn.client.disconnect(remove);
+          }
+        }
+      });
+      return state;
+
+    case "COMMAND_JOIN":
       try {
-        const client = findById(state.clients, action.payload.id);
-        const remove = () => {
-          action.asyncDispatch(actions.removeClient(client.id));
-        };
-        if (action.payload.message) {
-          client.disconnect(action.payload.message, remove);
+        const conn = findConnectionById(state, action.id);
+        conn.client.join(action.channel);
+      } catch (e) {
+        console.log(e); // eslint-disable-line
+      }
+      return state;
+
+    case "COMMAND_PART":
+      try {
+        const client: irc.Client = findConnectionById(state, action.id);
+        if (action.reason) {
+          client.part(action.channel, action.reason);
         } else {
-          client.disconnect(remove);
+          client.part(action.channel);
         }
       } catch (e) {
         console.log(e); // eslint-disable-line
       }
       return state;
 
-    case actionTypes.COMMAND_JOIN:
-      try {
-        const client = findById(state.clients, action.payload.id);
-        client.join(action.payload.channel);
-      } catch (e) {
-        console.log(e); // eslint-disable-line
-      }
-      return state;
-
-    case actionTypes.COMMAND_PART:
-      try {
-        const client = findById(state.clients, action.payload.id);
-        if (action.payload.reason) {
-          client.part(action.payload.channel, action.payload.reason);
-        } else {
-          client.part(action.payload.channel);
-        }
-      } catch (e) {
-        console.log(e); // eslint-disable-line
-      }
-      return state;
-
-    case actionTypes.EVENT_CONNECT:
+    case "EVENT_CONNECT":
       return Object.assign({}, state, {
-        connections: state.connections.concat({
-          id: action.payload.id,
-          server: action.payload.server,
-          nick: action.payload.nick,
-          channels: [],
-          messages: []
+        connections: state.connections.map(conn => {
+          if (conn.id === action.id) {
+            conn.connected = true;
+          }
+          return conn;
         }),
         active: {
-          connectionId: action.payload.id,
+          connectionId: action.id,
           type: "connection",
-          id: action.payload.id
+          id: action.id
         }
       });
 
-    case actionTypes.EVENT_MOTD:
+    case "EVENT_MOTD":
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
           const time = new Date();
-          if (conn.id === action.payload.id) {
-            action.payload.motd.split("\n").forEach(text => {
-              conn.messages.push({ id: nextId(), text, time });
+          if (conn.id === action.id) {
+            action.motd.split("\n").forEach(text => {
+              conn.messages.push({
+                id: nextId(),
+                text,
+                type: "server",
+                time,
+                user: null
+              });
             });
           }
           return conn;
         })
       });
 
-    case actionTypes.EVENT_JOIN:
+    case "EVENT_JOIN":
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
-          if (conn.id === action.payload.id) {
-            const chan = conn.channels.find(
-              c => c.name === action.payload.channel
-            );
+          if (conn.id === action.id) {
+            const chan = conn.channels.find(c => c.name === action.channel);
             if (chan === undefined) {
               // we joined a channel we weren't in before
               const id = nextId();
               conn.channels.push({
                 id,
-                name: action.payload.channel,
+                name: action.channel,
                 messages: [],
-                users: [action.payload.nick]
+                users: [action.nick]
               });
-              action.asyncDispatch(
-                actions.setActiveView(conn.id, "channel", id)
-              );
+              action.dispatch(actions.setActiveView(conn.id, "channel", id));
             } else {
               // we were already in this channel so probably someone else joined
-              if (chan.users.find(action.payload.nick) === undefined) {
-                chan.users.push(action.payload.nick);
+              if (chan.users.find(action.nick) === undefined) {
+                chan.users.push(action.nick);
               }
             }
           }
@@ -189,25 +171,23 @@ export default (state = initial, action) => {
         })
       });
 
-    case actionTypes.EVENT_PART:
+    case "EVENT_PART":
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
-          if (conn.id === action.payload.id) {
-            const chan = conn.channels.find(
-              c => c.name === action.payload.channel
-            );
+          if (conn.id === action.id) {
+            const chan = conn.channels.find(c => c.name === action.channel);
             if (chan !== undefined) {
-              if (conn.nick === action.payload.nick) {
+              if (conn.nick === action.nick) {
                 // we left a channel, so remove it from our list
                 conn.channels = conn.channels.filter(c => c.id !== chan.id);
                 if (state.active.id === chan.id) {
-                  action.asyncDispatch(
+                  action.dispatch(
                     actions.setActiveView(conn.id, "connection", conn.id)
                   );
                 }
               } else {
                 // someone else left a channel, so remove them from it
-                chan.users = chan.users.filter(u => u !== action.payload.nick);
+                chan.users = chan.users.filter(u => u !== action.nick);
                 // TODO: add "so and so left (reason)" message to channel
               }
             }
@@ -216,28 +196,34 @@ export default (state = initial, action) => {
         })
       });
 
-    case actionTypes.SET_ACTIVE_VIEW:
+    case "SET_ACTIVE_VIEW":
       return Object.assign({}, state, {
-        active: Object.assign({}, action.payload)
+        active: {
+          connectionId: action.connectionId,
+          type: action.activeType,
+          id: action.id
+        }
       });
 
-    case actionTypes.REMOVE_CLIENT: {
-      const newState = Object.assign({}, state, {
-        clients: state.clients.filter(c => c.id !== action.payload.id),
-        connections: state.connections.filter(c => c.id !== action.payload.id)
+    case "REMOVE_CONNECTION":
+      return Object.assign({}, state, {
+        connections: state.connections.filter(conn => {
+          if (conn.id === action.id) {
+            if (state.active.connectionId === action.id) {
+              const newConn = state.connections.find(c => c.id !== action.id);
+              if (newConn !== undefined) {
+                action.dispatch(
+                  actions.setActiveView(newConn.id, "connection", newConn.id)
+                );
+              } else {
+                action.dispatch(actions.setActiveView(-1, "", -1));
+              }
+            }
+            return false;
+          }
+          return true;
+        })
       });
-      if (state.active.connectionId === action.payload.id) {
-        const newConn = state.connections.find(c => c.id !== action.payload.id);
-        if (newConn !== undefined) {
-          action.asyncDispatch(
-            actions.setActiveView(newConn.id, "connection", newConn.id)
-          );
-        } else {
-          action.asyncDispatch(actions.setActiveView(-1, "", -1));
-        }
-      }
-      return newState;
-    }
 
     default:
       return state;

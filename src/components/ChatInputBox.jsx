@@ -1,8 +1,35 @@
+// @flow
 import React, { Component } from "react";
-import PropTypes from "prop-types";
+import type { Active } from "../types";
 
-class ChatInputBox extends Component {
-  constructor(props) {
+type Props = {
+  active: Active,
+  commands: Array<string>,
+  nicks: Array<string>,
+  channel: string,
+  processCommand: (
+    text: string,
+    active: Active,
+    channel: string
+  ) => typeof undefined
+};
+
+class ChatInputBox extends Component<Props> {
+  handleKeyDown: (
+    event: SyntheticKeyboardEvent<HTMLInputElement>
+  ) => typeof undefined;
+  focusInput: () => typeof undefined;
+  input: ?HTMLInputElement;
+  handleCompletion: (input: string) => typeof undefined;
+  populateCompletion: (word: string) => typeof undefined;
+  clearCompletion: () => typeof undefined;
+  completion: {
+    candidates: Array<string>,
+    position: number,
+    inProgress: boolean
+  };
+
+  constructor(props: Props) {
     super(props);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.focusInput = this.focusInput.bind(this);
@@ -13,10 +40,12 @@ class ChatInputBox extends Component {
   }
 
   focusInput() {
-    this.input.focus();
+    if (this.input) {
+      this.input.focus();
+    }
   }
 
-  populateCompletion(word) {
+  populateCompletion(word: string) {
     let candidates = [];
     if (word.startsWith("/")) {
       candidates = this.props.commands
@@ -39,8 +68,9 @@ class ChatInputBox extends Component {
     };
   }
 
-  handleCompletion(input) {
+  handleCompletion(input: string) {
     if (
+      !this.input ||
       input.length !== this.input.selectionStart ||
       (!this.completion.inProgress && input.indexOf(" ") > -1)
     ) {
@@ -55,11 +85,11 @@ class ChatInputBox extends Component {
     this.completion.position = newPos;
   }
 
-  handleKeyDown(e) {
+  handleKeyDown(e: SyntheticKeyboardEvent<HTMLInputElement>) {
     if (e.key === "Tab") {
       e.preventDefault();
       e.stopPropagation();
-      if (this.input.value !== "") {
+      if (this.input && this.input.value !== "") {
         this.handleCompletion(this.input.value);
       }
     } else if (this.completion.inProgress) {
@@ -67,9 +97,11 @@ class ChatInputBox extends Component {
     }
     if (e.key === "Enter") {
       e.stopPropagation();
-      const input = this.input.value;
-      this.input.value = "";
-      this.props.processCommand(input, this.props.active, this.props.channel);
+      if (this.input) {
+        const input = this.input.value;
+        this.input.value = "";
+        this.props.processCommand(input, this.props.active, this.props.channel);
+      }
     }
   }
 
@@ -90,20 +122,5 @@ class ChatInputBox extends Component {
     );
   }
 }
-
-ChatInputBox.defaultProps = {
-  nicks: [],
-  commands: [],
-  active: {},
-  channel: ""
-};
-
-ChatInputBox.propTypes = {
-  processCommand: PropTypes.func.isRequired,
-  commands: PropTypes.array,
-  nicks: PropTypes.array,
-  active: PropTypes.object,
-  channel: PropTypes.string
-};
 
 export default ChatInputBox;
