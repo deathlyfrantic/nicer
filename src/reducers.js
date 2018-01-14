@@ -107,11 +107,11 @@ export default (state: State = initial, action: Action): State => {
 
     case "COMMAND_PART":
       try {
-        const client: irc.Client = findConnectionById(state, action.id);
+        const conn: Connection = findConnectionById(state, action.id);
         if (action.reason) {
-          client.part(action.channel, action.reason);
+          conn.client.part(action.channel, action.reason);
         } else {
-          client.part(action.channel);
+          conn.client.part(action.channel);
         }
       } catch (e) {
         console.log(e); // eslint-disable-line
@@ -171,7 +171,9 @@ export default (state: State = initial, action: Action): State => {
                 messages: [],
                 users: [nick]
               });
-              action.asyncDispatch(conn.id, "channel", id);
+              action.asyncDispatch(
+                actions.setActiveView(conn.id, "channel", id)
+              );
             } else {
               // we were already in this channel so probably someone else joined
               if (chan.users.find(u => u === nick) === undefined) {
