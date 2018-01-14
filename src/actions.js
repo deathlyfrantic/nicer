@@ -206,6 +206,16 @@ export const eventMessage = (
   };
 };
 
+export const eventSelfMessage = (id: Id, to: string, text: string): Action => {
+  return {
+    type: "EVENT_SELFMESSAGE",
+    id,
+    to,
+    text,
+    asyncDispatch
+  };
+};
+
 // ui
 export const setActiveView = (
   connectionId: Id,

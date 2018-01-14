@@ -19,6 +19,7 @@ export type MessageType =
   | "normal"
   | "part"
   | "quit"
+  | "self"
   | "server"
   | "topic"
   | "whois";
@@ -202,6 +203,14 @@ export type EventMessageAction = {
   asyncDispatch: Function
 };
 
+export type EventSelfMessageAction = {
+  type: "EVENT_SELFMESSAGE",
+  id: Id,
+  to: string,
+  text: string,
+  asyncDispatch: Function
+};
+
 export type SetActiveViewAction = {
   type: "SET_ACTIVE_VIEW",
   connectionId: Id,
@@ -233,5 +242,6 @@ export type Action =
   | EventNickAction
   | EventWhoisAction
   | EventMessageAction
+  | EventSelfMessageAction
   | SetActiveViewAction
   | RemoveConnectionAction;

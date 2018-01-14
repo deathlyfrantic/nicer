@@ -69,7 +69,9 @@ const newClient = (
   client.on("message", (nick, to, text) => {
     dispatch(actions.eventMessage(id, nick, to, text));
   });
-  client.on("selfMessage", (to, text) => {});
+  client.on("selfMessage", (to, text) => {
+    dispatch(actions.eventSelfMessage(id, to, text));
+  });
   client.on("kill", (nick, reason, channels) => {});
   client.on("notice", (nick, to, text) => {});
   client.on("invite", (channel, from) => {});
@@ -534,6 +536,41 @@ export default (state: State = initial, action: Action): State => {
                   chan.messages.push({
                     ...message,
                     read: state.active.id === chan.id
+                  });
+                }
+              });
+            }
+          }
+          return conn;
+        })
+      });
+    }
+
+    case "EVENT_SELFMESSAGE": {
+      const [id, to, text] = [action.id, action.to, action.text];
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            const message = {
+              id: nextId(),
+              type: "self",
+              text,
+              time: new Date(),
+              user: conn.nick,
+              read: true
+            };
+            const chan = conn.channels.find(c => c.name === to);
+            if (chan !== undefined) {
+              chan.messages.push({
+                ...message,
+                read: chan.id === state.active.id
+              });
+            } else {
+              conn.queries.forEach(query => {
+                if (query.id === id) {
+                  query.messages.push({
+                    ...message,
+                    read: query.id === state.active.id
                   });
                 }
               });
