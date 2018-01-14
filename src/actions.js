@@ -91,6 +91,36 @@ export const eventPart = (
   };
 };
 
+export const eventNames = (
+  id: Id,
+  channel: string,
+  nicks: Array<string>
+): Action => {
+  return {
+    type: "EVENT_NAMES",
+    id,
+    channel,
+    nicks,
+    asyncDispatch
+  };
+};
+
+export const eventTopic = (
+  id: Id,
+  channel: string,
+  topic: string,
+  nick: string
+): Action => {
+  return {
+    type: "EVENT_TOPIC",
+    id,
+    channel,
+    topic,
+    nick,
+    asyncDispatch
+  };
+};
+
 // ui
 export const setActiveView = (
   connectionId: Id,

@@ -83,6 +83,10 @@ div#chatinputbox {
   &.active {
     background-color: lighten($lightgray, 10%);
   }
+
+  &.unread {
+    color: $blue;
+  }
 }
 
 .connection-label {

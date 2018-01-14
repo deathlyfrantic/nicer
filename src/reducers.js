@@ -38,7 +38,15 @@ const newClient = (
   client.on("part", (channel, nick, reason) => {
     dispatch(actions.eventPart(id, channel, nick, reason));
   });
-  // do all the on('foo') stuff here
+  client.on("names", (channel, nicks) => {
+    dispatch(actions.eventNames(id, channel, nicks.keys()));
+  });
+  client.on("topic", (channel, topic, nick) => {
+    dispatch(actions.eventTopic(id, channel, topic, nick));
+  });
+  // TODO(Zandr Martin/2018-01-14): events: quit, kick, kill, message,
+  // selfMessage, notice, nick, invite, +mode, -mode, channellist,
+  // error, action
   client.connect();
   return client;
 };
@@ -147,7 +155,8 @@ export default (state: State = initial, action: Action): State => {
                 text,
                 type: "server",
                 time,
-                user: null
+                user: null,
+                read: state.active.id === conn.id
               });
             });
           }
@@ -167,6 +176,7 @@ export default (state: State = initial, action: Action): State => {
               const id = nextId();
               conn.channels.push({
                 id,
+                topic: "",
                 name: channel,
                 messages: [],
                 users: [nick]
@@ -179,6 +189,14 @@ export default (state: State = initial, action: Action): State => {
               if (chan.users.find(u => u === nick) === undefined) {
                 chan.users.push(nick);
               }
+              chan.messages.push({
+                id: nextId(),
+                type: "join",
+                text: `${nick} joined channel ${chan.name}`,
+                time: new Date(),
+                user: nick,
+                read: state.active.id === chan.id
+              });
             }
           }
           return conn;
@@ -187,7 +205,12 @@ export default (state: State = initial, action: Action): State => {
     }
 
     case "EVENT_PART": {
-      const [id, channel, nick] = [action.id, action.channel, action.nick];
+      const [id, channel, nick, reason] = [
+        action.id,
+        action.channel,
+        action.nick,
+        action.reason
+      ];
       return Object.assign({}, state, {
         connections: state.connections.map(conn => {
           if (conn.id === id) {
@@ -204,7 +227,18 @@ export default (state: State = initial, action: Action): State => {
               } else {
                 // someone else left a channel, so remove them from it
                 chan.users = chan.users.filter(u => u !== nick);
-                // TODO: add "so and so left (reason)" message to channel
+                let text = `${nick} left channel ${chan.name}`;
+                if (reason) {
+                  text += ` (${reason})`;
+                }
+                chan.messages.push({
+                  id: nextId(),
+                  type: "part",
+                  text,
+                  time: new Date(),
+                  user: nick,
+                  read: state.active.id === chan.id
+                });
               }
             }
           }
@@ -213,14 +247,94 @@ export default (state: State = initial, action: Action): State => {
       });
     }
 
-    case "SET_ACTIVE_VIEW":
+    case "EVENT_NAMES": {
+      const [id, channel, nicks] = [action.id, action.channel, action.nicks];
       return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            conn.channels.forEach(chan => {
+              if (chan.name === channel) {
+                chan.users.push(...nicks);
+                // TODO(Zandr Martin/2018-01-14): account for modes
+                // XXX(Zandr Martin/2018-01-14): make nicks a set?
+              }
+            });
+          }
+          return conn;
+        })
+      });
+    }
+
+    case "EVENT_TOPIC": {
+      const [id, channel, topic, nick] = [
+        action.id,
+        action.channel,
+        action.topic,
+        action.nick
+      ];
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            conn.channels.forEach(chan => {
+              if (chan.name === channel) {
+                chan.topic = topic;
+                chan.messages.push({
+                  id: nextId(),
+                  type: "action",
+                  text: `${nick} set topic of ${channel} to "${topic}"`,
+                  time: new Date(),
+                  user: nick,
+                  read: state.active.id === chan.id
+                });
+              }
+            });
+          }
+          return conn;
+        })
+      });
+    }
+
+    case "SET_ACTIVE_VIEW": {
+      const [id, type, connectionId] = [
+        action.id,
+        action.activeType,
+        action.connectionId
+      ];
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          // mark messages in current view as read
+          if (conn.id === connectionId) {
+            switch (type) {
+              case "connection":
+                conn.messages.forEach(m => (m.read = true));
+                break;
+              case "channel":
+                conn.channels.forEach(chan => {
+                  if (chan.id === id) {
+                    chan.messages.forEach(m => (m.read = true));
+                  }
+                });
+                break;
+              case "query":
+                conn.queries.forEach(query => {
+                  if (query.id === id) {
+                    query.messages.forEach(m => (m.read = true));
+                  }
+                });
+                break;
+              default:
+                break;
+            }
+          }
+          return conn;
+        }),
         active: {
           connectionId: action.connectionId,
           type: action.activeType,
           id: action.id
         }
       });
+    }
 
     case "REMOVE_CONNECTION": {
       const id = action.id;

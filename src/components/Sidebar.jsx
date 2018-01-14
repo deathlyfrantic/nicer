@@ -12,6 +12,7 @@ type Props = {
 class Sidebar extends Component<Props> {
   renderConnections: () => Fragment;
   renderChannels: Connection => Component<*>;
+  renderQueries: Connection => Component<*>;
 
   constructor(props: Props) {
     super(props);
@@ -22,7 +23,8 @@ class Sidebar extends Component<Props> {
   renderChannels(connection: Connection) {
     return connection.channels.map(channel => {
       const classes = classnames("channel-label", {
-        active: channel.id === this.props.active.id
+        active: channel.id === this.props.active.id,
+        unread: channel.messages.find(c => !c.read) !== undefined
       });
       return (
         <div
@@ -38,11 +40,32 @@ class Sidebar extends Component<Props> {
     });
   }
 
+  renderQueries(connection: Connection) {
+    return connection.queries.map(query => {
+      const classes = classnames("query-label", {
+        active: query.id === this.props.active.id,
+        unread: query.messages.find(q => !q.read) !== undefined
+      });
+      return (
+        <div
+          key={query.id}
+          className={classes}
+          onClick={() =>
+            this.props.setActiveView(connection.id, "query", query.id)
+          }
+        >
+          {query.name}
+        </div>
+      );
+    });
+  }
+
   renderConnections() {
     return this.props.connections.map(connection => {
       const classes = classnames("connection-label", {
         active: connection.id === this.props.active.id,
-        disconnected: !connection.connected
+        disconnected: !connection.connected,
+        unread: connection.messages.find(m => !m.read) !== undefined
       });
       return (
         <Fragment key={"frag-" + connection.id}>
@@ -60,6 +83,7 @@ class Sidebar extends Component<Props> {
             {connection.name}
           </div>
           {this.renderChannels(connection)}
+          {this.renderQueries(connection)}
         </Fragment>
       );
     });
