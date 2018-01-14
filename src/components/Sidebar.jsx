@@ -41,7 +41,8 @@ class Sidebar extends Component<Props> {
   renderConnections() {
     return this.props.connections.map(connection => {
       const classes = classnames("connection-label", {
-        active: connection.id === this.props.active.id
+        active: connection.id === this.props.active.id,
+        disconnected: !connection.connected
       });
       return (
         <Fragment key={"frag-" + connection.id}>
