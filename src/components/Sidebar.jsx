@@ -24,7 +24,7 @@ class Sidebar extends Component<Props> {
     return connection.channels.map(channel => {
       const classes = classnames("channel-label", {
         active: channel.id === this.props.active.id,
-        unread: channel.messages.find(c => !c.read) !== undefined
+        unread: channel.messages.some(c => !c.read)
       });
       return (
         <div
@@ -44,7 +44,7 @@ class Sidebar extends Component<Props> {
     return connection.queries.map(query => {
       const classes = classnames("query-label", {
         active: query.id === this.props.active.id,
-        unread: query.messages.find(q => !q.read) !== undefined
+        unread: query.messages.some(q => !q.read)
       });
       return (
         <div
@@ -65,7 +65,7 @@ class Sidebar extends Component<Props> {
       const classes = classnames("connection-label", {
         active: connection.id === this.props.active.id,
         disconnected: !connection.connected,
-        unread: connection.messages.find(m => !m.read) !== undefined
+        unread: connection.messages.some(m => !m.read)
       });
       return (
         <Fragment key={"frag-" + connection.id}>
