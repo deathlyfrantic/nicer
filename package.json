@@ -22,10 +22,14 @@
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-react": "^6.24.1",
     "babel-eslint": "^8.2.1",
+    "babel-plugin-transform-es2015-destructuring": "^6.23.0",
+    "babel-plugin-transform-es2015-parameters": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "babel-preset-flow": "^6.23.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "eslint": "^4.13.1",
     "eslint-plugin-flowtype": "^2.41.0",
     "eslint-plugin-react": "^7.5.1",
@@ -34,8 +38,16 @@
   },
   "babel": {
     "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ],
+      "stage-2",
       "react",
-      "env",
       "flow"
     ]
   },
@@ -60,7 +72,10 @@
     },
     "plugins": [
       "react",
-      "flowtype"
+      "flowtype",
+      "transform-es2015-destructuring",
+      "transform-es2015-parameters",
+      "transform-object-rest-spread"
     ],
     "rules": {
       "indent": [
