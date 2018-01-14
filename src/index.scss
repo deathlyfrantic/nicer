@@ -85,6 +85,12 @@ div#chatinputbox {
   }
 }
 
+.connection-label {
+  &.disconnected {
+    color: $darktext;
+  }
+}
+
 .channel-label,
 .query-label {
   text-indent: 0.5em;
