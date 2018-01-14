@@ -155,6 +155,22 @@ export const eventKick = (
   };
 };
 
+export const eventNick = (
+  id: Id,
+  oldnick: string,
+  newnick: string,
+  channels: Array<string>
+): Action => {
+  return {
+    type: "EVENT_NICK",
+    id,
+    oldnick,
+    newnick,
+    channels,
+    asyncDispatch
+  };
+};
+
 // ui
 export const setActiveView = (
   connectionId: Id,
