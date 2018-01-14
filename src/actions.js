@@ -137,6 +137,24 @@ export const eventQuit = (
   };
 };
 
+export const eventKick = (
+  id: Id,
+  channel: string,
+  nick: string,
+  by: string,
+  reason: string
+): Action => {
+  return {
+    type: "EVENT_KICK",
+    id,
+    channel,
+    nick,
+    by,
+    reason,
+    asyncDispatch
+  };
+};
+
 // ui
 export const setActiveView = (
   connectionId: Id,
