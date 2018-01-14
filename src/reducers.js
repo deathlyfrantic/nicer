@@ -50,11 +50,13 @@ const newClient = (
   client.on("kick", (channel, nick, by, reason) => {
     dispatch(actions.eventKick(id, channel, nick, by, reason));
   });
+  client.on("nick", (oldnick, newnick, channels) => {
+    dispatch(actions.eventNick(id, oldnick, newnick, channels));
+  });
   client.on("kill", (nick, reason, channels) => {});
   client.on("message", (nick, to, text) => {});
   client.on("selfMessage", (to, text) => {});
   client.on("notice", (nick, to, text) => {});
-  client.on("nick", (oldnick, newnick, channels) => {});
   client.on("invite", (channel, from) => {});
   client.on("+mode", (channel, by, mode, argument) => {});
   client.on("-mode", (channel, by, mode, argument) => {});
@@ -366,6 +368,53 @@ export default (state: State = initial, action: Action): State => {
                   time: new Date(),
                   user: by,
                   read: state.active.id === chan.id
+                });
+              }
+            });
+          }
+          return conn;
+        })
+      });
+    }
+
+    case "EVENT_NICK": {
+      const [id, oldnick, newnick, channels] = [
+        action.id,
+        action.oldnick,
+        action.newnick,
+        action.channels
+      ];
+      const text = `${oldnick} is now ${newnick}`;
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            if (conn.nick === oldnick) {
+              // we changed our nick
+              conn.nick = newnick;
+            }
+            conn.channels.forEach(chan => {
+              if (channels.includes(chan.name)) {
+                chan.users = chan.users.map(u => (u === oldnick ? newnick : u));
+                chan.messages.push({
+                  id: nextId(),
+                  type: "nick",
+                  text,
+                  time: new Date(),
+                  user: newnick,
+                  read: state.active.id === chan.id
+                });
+              }
+            });
+            conn.queries.forEach(query => {
+              if (query.name === oldnick) {
+                query.name = newnick;
+                query.messages.push({
+                  id: nextId(),
+                  type: "nick",
+                  text,
+                  time: new Date(),
+                  user: newnick,
+                  read: state.active.id === query.id
                 });
               }
             });

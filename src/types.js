@@ -15,6 +15,7 @@ export type MessageType =
   | "action"
   | "join"
   | "kick"
+  | "nick"
   | "normal"
   | "part"
   | "quit"
@@ -157,6 +158,15 @@ export type EventKickAction = {
   asyncDispatch: Function
 };
 
+export type EventNickAction = {
+  type: "EVENT_NICK",
+  id: Id,
+  oldnick: string,
+  newnick: string,
+  channels: Array<string>,
+  asyncDispatch: Function
+};
+
 export type SetActiveViewAction = {
   type: "SET_ACTIVE_VIEW",
   connectionId: Id,
@@ -184,5 +194,6 @@ export type Action =
   | EventTopicAction
   | EventQuitAction
   | EventKickAction
+  | EventNickAction
   | SetActiveViewAction
   | RemoveConnectionAction;
