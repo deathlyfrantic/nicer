@@ -6,11 +6,11 @@ type Props = {
   active: Active,
   commands: Array<string>,
   nicks: Array<string>,
-  channel: string,
+  target: string,
   processCommand: (
     text: string,
     active: Active,
-    channel: string
+    target: string
   ) => typeof undefined
 };
 
@@ -100,7 +100,7 @@ class ChatInputBox extends Component<Props> {
       if (this.input) {
         const input = this.input.value;
         this.input.value = "";
-        this.props.processCommand(input, this.props.active, this.props.channel);
+        this.props.processCommand(input, this.props.active, this.props.target);
       }
     }
   }

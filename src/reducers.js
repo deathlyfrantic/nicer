@@ -158,6 +158,15 @@ export default (state: State = initial, action: Action): State => {
       }
       return state;
 
+    case "COMMAND_SAY":
+      try {
+        const conn: Connection = findConnectionById(state, action.id);
+        conn.client.say(action.target, action.message);
+      } catch (e) {
+        console.log(e); // eslint-disable-line
+      }
+      return state;
+
     case "EVENT_CONNECT": {
       const id = action.id;
       return Object.assign({}, state, {
