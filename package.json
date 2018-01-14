@@ -3,10 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "babel": "^6.23.0",
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-react": "^6.24.1",
     "classnames": "^2.2.5",
     "electron": "^1.7.9",
     "irc": "^0.5.2",
@@ -14,8 +10,7 @@
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-redux": "^5.0.6",
-    "redux": "^3.7.2",
-    "redux-thunk": "^2.2.0"
+    "redux": "^3.7.2"
   },
   "main": "build/main.js",
   "scripts": {
@@ -25,6 +20,10 @@
     "flow": "flow"
   },
   "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
     "babel-eslint": "^8.2.1",
     "babel-preset-flow": "^6.23.0",
     "eslint": "^4.13.1",
