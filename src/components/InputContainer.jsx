@@ -15,6 +15,9 @@ const commands = [
   "quit"
 ];
 
+// TODO(Zandr Martin/2018-01-14): just put the active connection or client in
+// the state so we can run commands directly from here, without dispatching
+// actions
 const mapStateToProps = (state: State) => {
   let nicks = [];
   let target = "";

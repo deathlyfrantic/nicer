@@ -161,6 +161,9 @@ export default (state: State = initial, action: Action): State => {
       return state;
 
     case "COMMAND_SAY":
+      // FIXME(Zandr Martin/2018-01-14): this doesn't work because selfMessage
+      // event dispatches before state is returned. see TODO in
+      // InputContainer.jsx file for way to fix.
       try {
         const conn: Connection = findConnectionById(state, action.id);
         conn.client.say(action.target, action.message);
