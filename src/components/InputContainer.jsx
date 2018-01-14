@@ -17,27 +17,36 @@ const commands = [
 
 const mapStateToProps = (state: State) => {
   let nicks = [];
-  const conn = state.connections.find(c => c.id === state.active.connectionId);
-  let channel = "";
-  if (conn !== undefined) {
-    const chan = conn.channels.find(c => c.id === state.active.id);
-    if (chan !== undefined) {
-      channel = chan.name;
-      nicks = chan.users.filter(user => user !== conn.nick);
+  let target = "";
+  state.connections.forEach(conn => {
+    if (conn.id === state.active.connectionId) {
+      if (conn.id === state.active.id) {
+        target = conn.name;
+      } else {
+        if (state.active.type === "channel") {
+          conn.channels.forEach(chan => {
+            if (chan.id === state.active.id) {
+              target = chan.name;
+              nicks = chan.users.filter(u => u !== conn.nick);
+            }
+          });
+        } else if (state.active.type === "query") {
+          conn.queries.forEach(query => {
+            if (query.id === state.active.id) {
+              target = query.name;
+            }
+          });
+        }
+      }
     }
-  }
-  return { active: state.active, commands, nicks, channel };
+  });
+  return { active: state.active, commands, nicks, target };
 };
 
 const mapDispatchToProps = (dispatch: Function) => {
   return {
-    processCommand(text, active, channel) {
-      console.log("processCommand with args:");
-      console.dir(text);
-      console.dir(active);
-      console.dir(channel);
+    processCommand(text, active, target) {
       if (text === "") {
-        console.log('text === ""');
         return;
       }
       if (text.startsWith("/")) {
@@ -48,7 +57,7 @@ const mapDispatchToProps = (dispatch: Function) => {
           .shift()
           .substring(1)
           .toLowerCase();
-        console.log("cmd is " + cmd);
+        const message = text.substring(cmd.length + 1).trimLeft();
         switch (cmd) {
           case "connect":
             if (words.length < 2) {
@@ -63,23 +72,25 @@ const mapDispatchToProps = (dispatch: Function) => {
             if (words.length < 1) {
               return; // TODO: handle this better
             }
-            dispatch(actions.commandJoin(active.connectionId, words.join(" ")));
+            dispatch(actions.commandJoin(active.connectionId, message));
             break;
           case "leave": // fallthrough
           case "part":
+            // TODO(Zandr Martin/2018-01-14): handle parting from query or
+            // connection
             if (words.length > 0) {
               if (words[0].startsWith("#")) {
-                channel = words.shift();
+                target = words.shift();
               }
               dispatch(
                 actions.commandPart(
                   active.connectionId,
-                  channel,
+                  target,
                   words.join(" ") // this is the reason for leaving
                 )
               );
             } else {
-              dispatch(actions.commandPart(active.connectionId, channel));
+              dispatch(actions.commandPart(active.connectionId, target));
             }
             break;
           case "msg": // fallthrough
@@ -91,7 +102,7 @@ const mapDispatchToProps = (dispatch: Function) => {
             break;
         }
       } else {
-        // say command is here
+        dispatch(actions.commandSay(active.connectionId, target, text));
       }
     }
   };

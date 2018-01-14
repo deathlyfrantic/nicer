@@ -45,6 +45,16 @@ export const commandPart = (
   };
 };
 
+export const commandSay = (id: Id, target: string, message: string): Action => {
+  return {
+    type: "COMMAND_SAY",
+    id,
+    target,
+    message,
+    asyncDispatch
+  };
+};
+
 // events
 export const eventConnect = (id: Id, server: string, nick: string): Action => {
   return {

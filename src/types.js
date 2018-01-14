@@ -91,6 +91,14 @@ export type CommandPartAction = {
   asyncDispatch: Function
 };
 
+export type CommandSayAction = {
+  type: "COMMAND_SAY",
+  id: Id,
+  target: string,
+  message: string,
+  asyncDispatch: Function
+};
+
 export type EventConnectAction = {
   type: "EVENT_CONNECT",
   id: Id,
@@ -213,6 +221,7 @@ export type Action =
   | CommandDisconnectAction
   | CommandJoinAction
   | CommandPartAction
+  | CommandSayAction
   | EventConnectAction
   | EventMotdAction
   | EventJoinAction
