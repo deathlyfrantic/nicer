@@ -39,7 +39,7 @@ const newClient = (
     dispatch(actions.eventPart(id, channel, nick, reason));
   });
   client.on("names", (channel, nicks) => {
-    dispatch(actions.eventNames(id, channel, nicks.keys()));
+    dispatch(actions.eventNames(id, channel, Object.keys(nicks)));
   });
   client.on("topic", (channel, topic, nick) => {
     dispatch(actions.eventTopic(id, channel, topic, nick));
