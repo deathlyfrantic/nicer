@@ -47,7 +47,9 @@ const newClient = (
   client.on("quit", (nick, reason, channels) => {
     dispatch(actions.eventQuit(id, nick, reason, channels));
   });
-  client.on("kick", (channel, nick, by, reason) => {});
+  client.on("kick", (channel, nick, by, reason) => {
+    dispatch(actions.eventKick(id, channel, nick, by, reason));
+  });
   client.on("kill", (nick, reason, channels) => {});
   client.on("message", (nick, to, text) => {});
   client.on("selfMessage", (to, text) => {});
@@ -313,7 +315,7 @@ export default (state: State = initial, action: Action): State => {
         action.reason,
         action.channels
       ];
-      let text = `${nick} quit.`;
+      let text = `${nick} quit`;
       if (reason) {
         text += ` (${reason})`;
       }
@@ -329,6 +331,40 @@ export default (state: State = initial, action: Action): State => {
                   text,
                   time: new Date(),
                   user: nick,
+                  read: state.active.id === chan.id
+                });
+              }
+            });
+          }
+          return conn;
+        })
+      });
+    }
+
+    case "EVENT_KICK": {
+      const [id, channel, nick, by, reason] = [
+        action.id,
+        action.channel,
+        action.nick,
+        action.by,
+        action.reason
+      ];
+      let text = `${nick} was kicked by ${by}`;
+      if (reason) {
+        text += ` (${reason})`;
+      }
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            conn.channels.forEach(chan => {
+              if (chan.name === channel) {
+                chan.users = chan.users.filter(u => u !== nick);
+                chan.messages.push({
+                  id: nextId(),
+                  type: "kick",
+                  text,
+                  time: new Date(),
+                  user: by,
                   read: state.active.id === chan.id
                 });
               }

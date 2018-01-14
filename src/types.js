@@ -147,6 +147,16 @@ export type EventQuitAction = {
   asyncDispatch: Function
 };
 
+export type EventKickAction = {
+  type: "EVENT_KICK",
+  id: Id,
+  channel: string,
+  nick: string,
+  by: string,
+  reason: string,
+  asyncDispatch: Function
+};
+
 export type SetActiveViewAction = {
   type: "SET_ACTIVE_VIEW",
   connectionId: Id,
@@ -173,5 +183,6 @@ export type Action =
   | EventNamesAction
   | EventTopicAction
   | EventQuitAction
+  | EventKickAction
   | SetActiveViewAction
   | RemoveConnectionAction;
