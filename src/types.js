@@ -11,18 +11,27 @@ export type Active = {
   id: Id
 };
 
-export type MessageType = "normal" | "action" | "server";
+export type MessageType =
+  | "action"
+  | "join"
+  | "kick"
+  | "normal"
+  | "part"
+  | "quit"
+  | "server";
 
 export type Message = {
   id: Id,
   type: MessageType,
   text: string,
   time: Date,
-  user: string | null
+  user: string | null,
+  read: boolean
 };
 
 export type Channel = {
   id: Id,
+  topic: string,
   name: string,
   messages: Array<Message>,
   users: Array<string>
@@ -111,6 +120,23 @@ export type EventPartAction = {
   asyncDispatch: Function
 };
 
+export type EventNamesAction = {
+  type: "EVENT_NAMES",
+  id: Id,
+  channel: string,
+  nicks: Array<string>,
+  asyncDispatch: Function
+};
+
+export type EventTopicAction = {
+  type: "EVENT_TOPIC",
+  id: Id,
+  channel: string,
+  topic: string,
+  nick: string,
+  asyncDispatch: Function
+};
+
 export type SetActiveViewAction = {
   type: "SET_ACTIVE_VIEW",
   connectionId: Id,
@@ -134,5 +160,7 @@ export type Action =
   | EventMotdAction
   | EventJoinAction
   | EventPartAction
+  | EventNamesAction
+  | EventTopicAction
   | SetActiveViewAction
   | RemoveConnectionAction;
