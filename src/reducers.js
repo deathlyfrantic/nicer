@@ -66,9 +66,11 @@ const newClient = (
     };
     dispatch(actions.eventWhois(id, data));
   });
-  client.on("kill", (nick, reason, channels) => {});
-  client.on("message", (nick, to, text) => {});
+  client.on("message", (nick, to, text) => {
+    dispatch(actions.eventMessage(id, nick, to, text));
+  });
   client.on("selfMessage", (to, text) => {});
+  client.on("kill", (nick, reason, channels) => {});
   client.on("notice", (nick, to, text) => {});
   client.on("invite", (channel, from) => {});
   client.on("+mode", (channel, by, mode, argument) => {});
@@ -484,6 +486,49 @@ export default (state: State = initial, action: Action): State => {
                 read: state.active.id === id
               });
             });
+          }
+          return conn;
+        })
+      });
+    }
+
+    case "EVENT_MESSAGE": {
+      const [id, nick, to, text] = [
+        action.id,
+        action.nick,
+        action.to,
+        action.text
+      ];
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            const message = {
+              id: nextId(),
+              type: "normal",
+              text,
+              time: new Date(),
+              user: nick,
+              read: false
+            };
+            if (to === conn.nick) {
+              conn.queries.forEach(query => {
+                if (query.name === nick) {
+                  query.messages.push({
+                    ...message,
+                    read: state.active.id === query.id
+                  });
+                }
+              });
+            } else {
+              conn.channels.forEach(chan => {
+                if (chan.name === to) {
+                  chan.messages.push({
+                    ...message,
+                    read: state.active.id === chan.id
+                  });
+                }
+              });
+            }
           }
           return conn;
         })

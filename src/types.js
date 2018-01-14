@@ -185,6 +185,15 @@ export type EventWhoisAction = {
   asyncDispatch: Function
 } & WhoisData;
 
+export type EventMessageAction = {
+  type: "EVENT_MESSAGE",
+  id: Id,
+  nick: string,
+  to: string,
+  text: string,
+  asyncDispatch: Function
+};
+
 export type SetActiveViewAction = {
   type: "SET_ACTIVE_VIEW",
   connectionId: Id,
@@ -214,5 +223,6 @@ export type Action =
   | EventKickAction
   | EventNickAction
   | EventWhoisAction
+  | EventMessageAction
   | SetActiveViewAction
   | RemoveConnectionAction;
