@@ -20,7 +20,8 @@ export type MessageType =
   | "part"
   | "quit"
   | "server"
-  | "topic";
+  | "topic"
+  | "whois";
 
 export type Message = {
   id: Id,
@@ -167,6 +168,23 @@ export type EventNickAction = {
   asyncDispatch: Function
 };
 
+export type WhoisData = {
+  nick: string,
+  user: string,
+  host: string,
+  realname: string,
+  server: string,
+  serverinfo: string,
+  idle: string,
+  channels: Array<string>
+};
+
+export type EventWhoisAction = {
+  type: "EVENT_WHOIS",
+  id: Id,
+  asyncDispatch: Function
+} & WhoisData;
+
 export type SetActiveViewAction = {
   type: "SET_ACTIVE_VIEW",
   connectionId: Id,
@@ -195,5 +213,6 @@ export type Action =
   | EventQuitAction
   | EventKickAction
   | EventNickAction
+  | EventWhoisAction
   | SetActiveViewAction
   | RemoveConnectionAction;

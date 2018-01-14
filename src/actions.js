@@ -1,5 +1,5 @@
 // @flow
-import type { Id, ActiveType, Action } from "./types";
+import type { Id, ActiveType, Action, WhoisData } from "./types";
 
 const asyncDispatch = () => {};
 
@@ -167,6 +167,15 @@ export const eventNick = (
     oldnick,
     newnick,
     channels,
+    asyncDispatch
+  };
+};
+
+export const eventWhois = (id: Id, data: WhoisData): Action => {
+  return {
+    type: "EVENT_WHOIS",
+    id,
+    ...data,
     asyncDispatch
   };
 };

@@ -53,6 +53,19 @@ const newClient = (
   client.on("nick", (oldnick, newnick, channels) => {
     dispatch(actions.eventNick(id, oldnick, newnick, channels));
   });
+  client.on("whois", info => {
+    const data = {
+      nick: info.nick || "",
+      user: info.user || "",
+      host: info.host || "",
+      realname: info.realname || "",
+      server: info.server || "",
+      serverinfo: info.serverinfo || "",
+      idle: info.idle || "",
+      channels: info.channels || []
+    };
+    dispatch(actions.eventWhois(id, data));
+  });
   client.on("kill", (nick, reason, channels) => {});
   client.on("message", (nick, to, text) => {});
   client.on("selfMessage", (to, text) => {});
@@ -60,9 +73,10 @@ const newClient = (
   client.on("invite", (channel, from) => {});
   client.on("+mode", (channel, by, mode, argument) => {});
   client.on("-mode", (channel, by, mode, argument) => {});
-  client.on("whois", info => {});
   client.on("action", (from, to, text) => {});
-  client.on("error", message => {});
+  client.on("error", message => {
+    console.dir(message); // eslint-disable-line
+  });
   client.connect();
   return client;
 };
@@ -104,14 +118,14 @@ export default (state: State = initial, action: Action): State => {
     }
 
     case "COMMAND_DISCONNECT": {
-      const id = action.id;
+      const [id, message] = [action.id, action.message];
       state.connections.forEach(conn => {
         if (conn.id === id) {
           const remove = () => {
             action.asyncDispatch(actions.removeConnection(conn.id));
           };
-          if (action.message) {
-            conn.client.disconnect(action.message, remove);
+          if (message) {
+            conn.client.disconnect(message, remove);
           } else {
             conn.client.disconnect(remove);
           }
@@ -417,6 +431,58 @@ export default (state: State = initial, action: Action): State => {
                   read: state.active.id === query.id
                 });
               }
+            });
+          }
+          return conn;
+        })
+      });
+    }
+
+    case "EVENT_WHOIS": {
+      const [
+        id,
+        nick,
+        user,
+        host,
+        realname,
+        server,
+        serverinfo,
+        idle,
+        channels
+      ] = [
+        action.id,
+        action.nick,
+        action.user,
+        action.host,
+        action.realname,
+        action.server,
+        action.serverinfo,
+        action.idle,
+        action.channels
+      ];
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            const texts = [];
+            if (nick) texts.push(`nick: ${nick}`);
+            if (user) texts.push(`user: ${user}`);
+            if (host) texts.push(`host: ${host}`);
+            if (realname) texts.push(`real name: ${realname}`);
+            if (server) texts.push(`server: ${server}`);
+            if (serverinfo) texts.push(`server info: ${serverinfo}`);
+            if (idle) texts.push(`idle: ${idle}`);
+            if (channels.length > 0) {
+              texts.push(`channels: ${channels.join(" ,")}`);
+            }
+            texts.forEach(text => {
+              conn.messages.push({
+                id: nextId(),
+                type: "whois",
+                text,
+                time: new Date(),
+                user: nick || null,
+                read: state.active.id === id
+              });
             });
           }
           return conn;
