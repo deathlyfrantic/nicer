@@ -121,6 +121,22 @@ export const eventTopic = (
   };
 };
 
+export const eventQuit = (
+  id: Id,
+  nick: string,
+  reason: string,
+  channels: Array<string>
+): Action => {
+  return {
+    type: "EVENT_QUIT",
+    id,
+    nick,
+    reason,
+    channels,
+    asyncDispatch
+  };
+};
+
 // ui
 export const setActiveView = (
   connectionId: Id,

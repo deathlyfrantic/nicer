@@ -44,7 +44,9 @@ const newClient = (
   client.on("topic", (channel, topic, nick) => {
     dispatch(actions.eventTopic(id, channel, topic, nick));
   });
-  client.on("quit", (nick, reason, channels) => {});
+  client.on("quit", (nick, reason, channels) => {
+    dispatch(actions.eventQuit(id, nick, reason, channels));
+  });
   client.on("kick", (channel, nick, by, reason) => {});
   client.on("kill", (nick, reason, channels) => {});
   client.on("message", (nick, to, text) => {});
@@ -290,8 +292,41 @@ export default (state: State = initial, action: Action): State => {
                 chan.topic = topic;
                 chan.messages.push({
                   id: nextId(),
-                  type: "action",
+                  type: "topic",
                   text: `${nick} set topic of ${channel} to "${topic}"`,
+                  time: new Date(),
+                  user: nick,
+                  read: state.active.id === chan.id
+                });
+              }
+            });
+          }
+          return conn;
+        })
+      });
+    }
+
+    case "EVENT_QUIT": {
+      const [id, nick, reason, channels] = [
+        action.id,
+        action.nick,
+        action.reason,
+        action.channels
+      ];
+      let text = `${nick} quit.`;
+      if (reason) {
+        text += ` (${reason})`;
+      }
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            conn.channels.forEach(chan => {
+              if (channels.includes(chan.name)) {
+                chan.users = chan.users.filter(u => u !== nick);
+                chan.messages.push({
+                  id: nextId(),
+                  type: "quit",
+                  text,
                   time: new Date(),
                   user: nick,
                   read: state.active.id === chan.id
