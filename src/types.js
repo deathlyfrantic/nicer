@@ -18,7 +18,8 @@ export type MessageType =
   | "normal"
   | "part"
   | "quit"
-  | "server";
+  | "server"
+  | "topic";
 
 export type Message = {
   id: Id,
@@ -137,6 +138,15 @@ export type EventTopicAction = {
   asyncDispatch: Function
 };
 
+export type EventQuitAction = {
+  type: "EVENT_QUIT",
+  id: Id,
+  nick: string,
+  reason: string,
+  channels: Array<string>,
+  asyncDispatch: Function
+};
+
 export type SetActiveViewAction = {
   type: "SET_ACTIVE_VIEW",
   connectionId: Id,
@@ -162,5 +172,6 @@ export type Action =
   | EventPartAction
   | EventNamesAction
   | EventTopicAction
+  | EventQuitAction
   | SetActiveViewAction
   | RemoveConnectionAction;
