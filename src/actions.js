@@ -180,6 +180,22 @@ export const eventWhois = (id: Id, data: WhoisData): Action => {
   };
 };
 
+export const eventMessage = (
+  id: Id,
+  nick: string,
+  to: string,
+  text: string
+): Action => {
+  return {
+    type: "EVENT_MESSAGE",
+    id,
+    nick,
+    to,
+    text,
+    asyncDispatch
+  };
+};
+
 // ui
 export const setActiveView = (
   connectionId: Id,
