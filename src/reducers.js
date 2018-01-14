@@ -44,9 +44,19 @@ const newClient = (
   client.on("topic", (channel, topic, nick) => {
     dispatch(actions.eventTopic(id, channel, topic, nick));
   });
-  // TODO(Zandr Martin/2018-01-14): events: quit, kick, kill, message,
-  // selfMessage, notice, nick, invite, +mode, -mode, channellist,
-  // error, action
+  client.on("quit", (nick, reason, channels) => {});
+  client.on("kick", (channel, nick, by, reason) => {});
+  client.on("kill", (nick, reason, channels) => {});
+  client.on("message", (nick, to, text) => {});
+  client.on("selfMessage", (to, text) => {});
+  client.on("notice", (nick, to, text) => {});
+  client.on("nick", (oldnick, newnick, channels) => {});
+  client.on("invite", (channel, from) => {});
+  client.on("+mode", (channel, by, mode, argument) => {});
+  client.on("-mode", (channel, by, mode, argument) => {});
+  client.on("whois", info => {});
+  client.on("action", (from, to, text) => {});
+  client.on("error", message => {});
   client.connect();
   return client;
 };
