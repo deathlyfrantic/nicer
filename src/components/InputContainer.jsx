@@ -6,6 +6,7 @@ import * as actions from "../actions";
 import type { State } from "../types";
 
 const commands = [
+  "close",
   "connect",
   "disconnect",
   "join",
@@ -90,26 +91,41 @@ const mapDispatchToProps = (dispatch: Function) => {
             if (words.length < 1) {
               return; // TODO: handle this better
             }
-            client.join(words.join(" "));
+            client.join(message);
             break;
 
+          case "close": // fallthrough
           case "leave": // fallthrough
           case "part":
-            // TODO(Zandr Martin/2018-01-14): handle parting from query or
-            // connection
             if (words.length > 0) {
               if (words[0].startsWith("#")) {
                 target = words.shift();
               }
               client.part(target, words.join(" "));
-            } else {
+            } else if (active.type === "channel") {
               client.part(target);
+            } else if (active.type === "query") {
+              dispatch(actions.removeQuery(active.id));
             }
             break;
 
           case "msg": // fallthrough
-          case "query":
+          case "query": {
+            if (words.length === 0) {
+              return;
+            }
+            const target = words.shift();
+            if (words.length > 0) {
+              // we're doing like "/msg user123 hello!" so say it to them and
+              // let the message event take care of adding the query
+              client.say(target, message.substring(target.length).trimLeft());
+            } else {
+              // we're doing "/query user123" with no message, so we just want
+              // to open a window
+              dispatch(actions.newQuery(active.connectionId, target));
+            }
             break;
+          }
 
           case "quit":
             break;

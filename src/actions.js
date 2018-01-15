@@ -197,3 +197,20 @@ export const removeConnection = (id: Id): Action => {
     asyncDispatch
   };
 };
+
+export const removeQuery = (id: Id): Action => {
+  return {
+    type: "REMOVE_QUERY",
+    id,
+    asyncDispatch
+  };
+};
+
+export const newQuery = (id: Id, target: string): Action => {
+  return {
+    type: "NEW_QUERY",
+    id,
+    target,
+    asyncDispatch
+  };
+};

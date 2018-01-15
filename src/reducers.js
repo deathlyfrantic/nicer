@@ -404,14 +404,24 @@ export default (state: State = initial, action: Action): State => {
               read: false
             };
             if (to === conn.nick) {
-              conn.queries.forEach(query => {
-                if (query.name === nick) {
-                  query.messages.push({
-                    ...message,
-                    read: state.active.id === query.id
-                  });
-                }
-              });
+              const query = conn.queries.find(query => query.name === nick);
+              if (query) {
+                query.messages.push({
+                  ...message,
+                  read: state.active.id === query.id
+                });
+              } else {
+                // this is a query but from a new person so we need to add it
+                const id = nextId();
+                conn.queries.push({
+                  id,
+                  name: nick,
+                  messages: [{ ...message, read: false }]
+                });
+                action.asyncDispatch(
+                  actions.setActiveView(conn.id, "query", id)
+                );
+              }
             } else {
               conn.channels.forEach(chan => {
                 if (chan.name === to) {
@@ -528,6 +538,42 @@ export default (state: State = initial, action: Action): State => {
             return false;
           }
           return true;
+        })
+      });
+    }
+
+    case "REMOVE_QUERY": {
+      const id = action.id;
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          conn.queries = conn.queries.filter(query => query.id !== id);
+          return conn;
+        })
+      });
+    }
+
+    case "NEW_QUERY": {
+      const [id, target] = [action.id, action.target];
+      return Object.assign({}, state, {
+        connections: state.connections.map(conn => {
+          if (conn.id === id) {
+            const query = conn.queries.find(query => query.name === target);
+            if (query) {
+              // just switch view to existing query
+              action.asyncDispatch(
+                actions.setActiveView(id, "query", query.id)
+              );
+            } else {
+              const newId = nextId();
+              conn.queries.push({
+                id: newId,
+                name: target,
+                messages: []
+              });
+              action.asyncDispatch(actions.setActiveView(id, "query", newId));
+            }
+          }
+          return conn;
         })
       });
     }
