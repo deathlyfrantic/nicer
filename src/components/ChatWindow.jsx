@@ -2,6 +2,7 @@
 import React, { Component } from "react";
 import type { Message } from "../types";
 import type { Node } from "react";
+import classnames from "classnames";
 
 type Props = {
   messages: Array<Message>
@@ -20,9 +21,10 @@ class ChatWindow extends Component<Props> {
 
   renderMessages() {
     return this.props.messages.map(msg => {
+      const classes = classnames("message", msg.type);
       return (
-        <div key={msg.id} className="message">
-          {msg.type === "normal" ? (
+        <div key={msg.id} className={classes}>
+          {msg.type === "normal" || msg.type === "self" ? (
             <span className="author">{msg.user}</span>
           ) : (
             ""

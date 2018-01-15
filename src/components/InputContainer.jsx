@@ -54,7 +54,6 @@ const mapDispatchToProps = (dispatch: Function) => {
         return;
       }
       if (text.startsWith("/")) {
-        console.log("text startswith /");
         // handle command here
         const words = text.split(/\s+/);
         const cmd = words
