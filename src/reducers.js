@@ -1,11 +1,11 @@
 // @flow
 import irc from "irc";
 import * as actions from "./actions";
-
+import { getClient, newClient, removeClient } from "./irc-state";
 import type { State, Id, Connection, Action } from "./types";
 
 let uniqueId: number = 0;
-const nextId = (): number => uniqueId++;
+export const nextId = (): number => uniqueId++;
 
 const initial: State = {
   connections: [],
@@ -16,79 +16,10 @@ const initial: State = {
   }
 };
 
-const newClient = (
-  id: Id,
-  server: string,
-  nick: string,
-  dispatch: Function
-): irc.Client => {
-  const client = new irc.Client(server, nick, {
-    stripColors: true,
-    autoConnect: false
-  });
-  client.on("registered", () => {
-    dispatch(actions.eventConnect(id, client.server, client.nick));
-  });
-  client.on("motd", motd => {
-    dispatch(actions.eventMotd(id, motd));
-  });
-  client.on("join", (channel, nick) => {
-    dispatch(actions.eventJoin(id, channel, nick));
-  });
-  client.on("part", (channel, nick, reason) => {
-    dispatch(actions.eventPart(id, channel, nick, reason));
-  });
-  client.on("names", (channel, nicks) => {
-    dispatch(actions.eventNames(id, channel, Object.keys(nicks)));
-  });
-  client.on("topic", (channel, topic, nick) => {
-    dispatch(actions.eventTopic(id, channel, topic, nick));
-  });
-  client.on("quit", (nick, reason, channels) => {
-    dispatch(actions.eventQuit(id, nick, reason, channels));
-  });
-  client.on("kick", (channel, nick, by, reason) => {
-    dispatch(actions.eventKick(id, channel, nick, by, reason));
-  });
-  client.on("nick", (oldnick, newnick, channels) => {
-    dispatch(actions.eventNick(id, oldnick, newnick, channels));
-  });
-  client.on("whois", info => {
-    const data = {
-      nick: info.nick || "",
-      user: info.user || "",
-      host: info.host || "",
-      realname: info.realname || "",
-      server: info.server || "",
-      serverinfo: info.serverinfo || "",
-      idle: info.idle || "",
-      channels: info.channels || []
-    };
-    dispatch(actions.eventWhois(id, data));
-  });
-  client.on("message", (nick, to, text) => {
-    dispatch(actions.eventMessage(id, nick, to, text));
-  });
-  client.on("selfMessage", (to, text) => {
-    dispatch(actions.eventSelfMessage(id, to, text));
-  });
-  client.on("kill", (nick, reason, channels) => {});
-  client.on("notice", (nick, to, text) => {});
-  client.on("invite", (channel, from) => {});
-  client.on("+mode", (channel, by, mode, argument) => {});
-  client.on("-mode", (channel, by, mode, argument) => {});
-  client.on("action", (from, to, text) => {});
-  client.on("error", message => {
-    console.dir(message); // eslint-disable-line
-  });
-  client.connect();
-  return client;
-};
-
 const findConnectionById = (state: State, id: Id): Connection => {
-  const conns = state.connections.filter(c => c.id === id);
-  if (conns.length > 0) {
-    return conns[0];
+  const conn = state.connections.find(c => c.id === id);
+  if (conn) {
+    return conn;
   }
   throw new Error(`Unable to find connection with id ${id}.`);
 };
@@ -110,7 +41,6 @@ export default (state: State = initial, action: Action): State => {
       return Object.assign({}, state, {
         connections: state.connections.concat({
           id,
-          client,
           connected: false,
           name: action.server,
           nick: action.nick,
@@ -120,57 +50,6 @@ export default (state: State = initial, action: Action): State => {
         })
       });
     }
-
-    case "COMMAND_DISCONNECT": {
-      const [id, message] = [action.id, action.message];
-      state.connections.forEach(conn => {
-        if (conn.id === id) {
-          const remove = () => {
-            action.asyncDispatch(actions.removeConnection(conn.id));
-          };
-          if (message) {
-            conn.client.disconnect(message, remove);
-          } else {
-            conn.client.disconnect(remove);
-          }
-        }
-      });
-      return state;
-    }
-
-    case "COMMAND_JOIN":
-      try {
-        const conn = findConnectionById(state, action.id);
-        conn.client.join(action.channel);
-      } catch (e) {
-        console.log(e); // eslint-disable-line
-      }
-      return state;
-
-    case "COMMAND_PART":
-      try {
-        const conn: Connection = findConnectionById(state, action.id);
-        if (action.reason) {
-          conn.client.part(action.channel, action.reason);
-        } else {
-          conn.client.part(action.channel);
-        }
-      } catch (e) {
-        console.log(e); // eslint-disable-line
-      }
-      return state;
-
-    case "COMMAND_SAY":
-      // FIXME(Zandr Martin/2018-01-14): this doesn't work because selfMessage
-      // event dispatches before state is returned. see TODO in
-      // InputContainer.jsx file for way to fix.
-      try {
-        const conn: Connection = findConnectionById(state, action.id);
-        conn.client.say(action.target, action.message);
-      } catch (e) {
-        console.log(e); // eslint-disable-line
-      }
-      return state;
 
     case "EVENT_CONNECT": {
       const id = action.id;
@@ -640,6 +519,11 @@ export default (state: State = initial, action: Action): State => {
               } else {
                 action.asyncDispatch(actions.setActiveView(-1, "", -1));
               }
+            }
+            try {
+              removeClient(id);
+            } catch (e) {
+              console.dir(state); // eslint-disable-line
             }
             return false;
           }
