@@ -17,15 +17,12 @@
     "build": "$(npm bin)/babel src -d build --copy-files",
     "watch": "$(npm bin)/babel --watch src -d build --source-maps inline --copy-files",
     "start": "npm run build && electron .",
-    "flow": "flow"
+    "flow": "flow --color always --show-all-errors | less -FiXR"
   },
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.2.1",
-    "babel-plugin-transform-es2015-destructuring": "^6.23.0",
-    "babel-plugin-transform-es2015-parameters": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-flow": "^6.23.0",
     "babel-preset-react": "^6.24.1",
@@ -38,14 +35,7 @@
   },
   "babel": {
     "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "node": "current"
-          }
-        }
-      ],
+      "env",
       "stage-2",
       "react",
       "flow"
@@ -72,10 +62,7 @@
     },
     "plugins": [
       "react",
-      "flowtype",
-      "transform-es2015-destructuring",
-      "transform-es2015-parameters",
-      "transform-object-rest-spread"
+      "flowtype"
     ],
     "rules": {
       "indent": [
