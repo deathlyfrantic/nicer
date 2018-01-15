@@ -92,10 +92,31 @@ div#chatinputbox {
 .connection-label {
   &.disconnected {
     color: $darktext;
+    &:after {
+      content: "";
+      background: url(spinner.svg) no-repeat;
+      height: 1em;
+      width: 1em;
+      display: inline-block;
+      margin-left: 0.3em;
+      transform: translateY(0.15em);
+    }
   }
 }
 
 .channel-label,
 .query-label {
   text-indent: 0.5em;
+}
+
+.message {
+  .author {
+    color: $blue;
+    &:before {
+      content: "<";
+    }
+    &:after {
+      content: "> ";
+    }
+  }
 }
