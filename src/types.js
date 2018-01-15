@@ -192,6 +192,19 @@ export type RemoveConnectionAction = {
   asyncDispatch: Function
 };
 
+export type RemoveQueryAction = {
+  type: "REMOVE_QUERY",
+  id: Id,
+  asyncDispatch: Function
+};
+
+export type NewQueryAction = {
+  type: "NEW_QUERY",
+  id: Id,
+  target: string,
+  asyncDispatch: Function
+};
+
 export type Action =
   | CommandConnectAction
   | EventConnectAction
@@ -207,4 +220,6 @@ export type Action =
   | EventMessageAction
   | EventSelfMessageAction
   | SetActiveViewAction
-  | RemoveConnectionAction;
+  | RemoveConnectionAction
+  | RemoveQueryAction
+  | NewQueryAction;
