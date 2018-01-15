@@ -1,5 +1,6 @@
 // @flow
 import { connect } from "react-redux";
+import { getClient } from "../irc-state";
 import ChatInputBox from "./ChatInputBox";
 import * as actions from "../actions";
 import type { State } from "../types";
@@ -68,44 +69,67 @@ const mapDispatchToProps = (dispatch: Function) => {
             }
             dispatch(actions.commandConnect(words[0], words[1]));
             break;
+
           case "disconnect":
-            dispatch(actions.commandDisconnect(active.connectionId));
+            try {
+              const client = getClient(active.connectionId);
+              const remove = () => {
+                dispatch(actions.removeConnection(active.connectionId));
+              };
+              client.disconnect(message, remove);
+            } catch (e) {
+              console.log(e); // eslint-disable-line
+            }
             break;
+
           case "join":
             if (words.length < 1) {
               return; // TODO: handle this better
             }
-            dispatch(actions.commandJoin(active.connectionId, message));
-            break;
-          case "leave": // fallthrough
-          case "part":
-            // TODO(Zandr Martin/2018-01-14): handle parting from query or
-            // connection
-            if (words.length > 0) {
-              if (words[0].startsWith("#")) {
-                target = words.shift();
-              }
-              dispatch(
-                actions.commandPart(
-                  active.connectionId,
-                  target,
-                  words.join(" ") // this is the reason for leaving
-                )
-              );
-            } else {
-              dispatch(actions.commandPart(active.connectionId, target));
+            try {
+              const client = getClient(active.connectionId);
+              client.join(words.join(" "));
+            } catch (e) {
+              console.log(e); // eslint-disable-line
             }
             break;
+
+          case "leave": // fallthrough
+          case "part":
+            try {
+              const client = getClient(active.connectionId);
+              // TODO(Zandr Martin/2018-01-14): handle parting from query or
+              // connection
+              if (words.length > 0) {
+                if (words[0].startsWith("#")) {
+                  target = words.shift();
+                }
+                client.part(target, words.join(" "));
+              } else {
+                client.part(target);
+              }
+            } catch (e) {
+              console.log(e); // eslint-disable-line
+            }
+            break;
+
           case "msg": // fallthrough
           case "query":
             break;
+
           case "quit":
             break;
+
           default:
             break;
         }
       } else {
-        dispatch(actions.commandSay(active.connectionId, target, text));
+        try {
+          const client = getClient(active.connectionId);
+          client.say(target, text);
+        } catch (e) {
+          console.log(e); // eslint-disable-line
+        }
       }
     }
   };

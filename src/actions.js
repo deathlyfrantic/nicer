@@ -13,48 +13,6 @@ export const commandConnect = (server: string, nick: string): Action => {
   };
 };
 
-export const commandDisconnect = (id: Id, message: string = ""): Action => {
-  return {
-    type: "COMMAND_DISCONNECT",
-    id,
-    message,
-    asyncDispatch
-  };
-};
-
-export const commandJoin = (id: Id, channel: string): Action => {
-  return {
-    type: "COMMAND_JOIN",
-    id,
-    channel,
-    asyncDispatch
-  };
-};
-
-export const commandPart = (
-  id: Id,
-  channel: string,
-  reason: string = ""
-): Action => {
-  return {
-    type: "COMMAND_PART",
-    id,
-    channel,
-    reason,
-    asyncDispatch
-  };
-};
-
-export const commandSay = (id: Id, target: string, message: string): Action => {
-  return {
-    type: "COMMAND_SAY",
-    id,
-    target,
-    message,
-    asyncDispatch
-  };
-};
-
 // events
 export const eventConnect = (id: Id, server: string, nick: string): Action => {
   return {

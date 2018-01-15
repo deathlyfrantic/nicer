@@ -1,6 +1,4 @@
 // @flow
-import irc from "irc";
-
 export type Id = string | number;
 
 export type ActiveType = "" | "channel" | "query" | "connection";
@@ -49,7 +47,6 @@ export type Query = {
 
 export type Connection = {
   id: Id,
-  client: irc.Client,
   connected: boolean,
   name: string,
   nick: string,
@@ -67,36 +64,6 @@ export type CommandConnectAction = {
   type: "COMMAND_CONNECT",
   server: string,
   nick: string,
-  asyncDispatch: Function
-};
-
-export type CommandDisconnectAction = {
-  type: "COMMAND_DISCONNECT",
-  id: Id,
-  message: string,
-  asyncDispatch: Function
-};
-
-export type CommandJoinAction = {
-  type: "COMMAND_JOIN",
-  id: Id,
-  channel: string,
-  asyncDispatch: Function
-};
-
-export type CommandPartAction = {
-  type: "COMMAND_PART",
-  id: Id,
-  channel: string,
-  reason: string,
-  asyncDispatch: Function
-};
-
-export type CommandSayAction = {
-  type: "COMMAND_SAY",
-  id: Id,
-  target: string,
-  message: string,
   asyncDispatch: Function
 };
 
@@ -227,10 +194,6 @@ export type RemoveConnectionAction = {
 
 export type Action =
   | CommandConnectAction
-  | CommandDisconnectAction
-  | CommandJoinAction
-  | CommandPartAction
-  | CommandSayAction
   | EventConnectAction
   | EventMotdAction
   | EventJoinAction
