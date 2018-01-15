@@ -13,12 +13,10 @@ const commands = [
   "msg",
   "part",
   "query",
-  "quit"
+  "quit",
+  "whois"
 ];
 
-// TODO(Zandr Martin/2018-01-14): just put the active connection or client in
-// the state so we can run commands directly from here, without dispatching
-// actions
 const mapStateToProps = (state: State) => {
   let nicks = [];
   let target = "";
@@ -48,6 +46,8 @@ const mapStateToProps = (state: State) => {
 };
 
 const mapDispatchToProps = (dispatch: Function) => {
+  // TODO(Zandr Martin/2018-01-15): all this stuff needs better (any!) error
+  // handling that displays messages to the user
   return {
     processCommand(text, active, target) {
       if (text === "") {
@@ -61,54 +61,49 @@ const mapDispatchToProps = (dispatch: Function) => {
           .substring(1)
           .toLowerCase();
         const message = text.substring(cmd.length + 1).trimLeft();
+        if (cmd === "connect") {
+          // this doesn't require a client, so handle it before trying to get
+          // the active client
+          if (words.length < 2) {
+            return; // TODO: handle this better
+          }
+          dispatch(actions.commandConnect(words[0], words[1]));
+          return;
+        }
+        let client;
+        try {
+          client = getClient(active.connectionId);
+        } catch (e) {
+          console.log(e); // eslint-disable-line
+          return;
+        }
         switch (cmd) {
-          case "connect":
-            if (words.length < 2) {
-              return; // TODO: handle this better
-            }
-            dispatch(actions.commandConnect(words[0], words[1]));
+          case "disconnect": {
+            const remove = () => {
+              dispatch(actions.removeConnection(active.connectionId));
+            };
+            client.disconnect(message, remove);
             break;
-
-          case "disconnect":
-            try {
-              const client = getClient(active.connectionId);
-              const remove = () => {
-                dispatch(actions.removeConnection(active.connectionId));
-              };
-              client.disconnect(message, remove);
-            } catch (e) {
-              console.log(e); // eslint-disable-line
-            }
-            break;
+          }
 
           case "join":
             if (words.length < 1) {
               return; // TODO: handle this better
             }
-            try {
-              const client = getClient(active.connectionId);
-              client.join(words.join(" "));
-            } catch (e) {
-              console.log(e); // eslint-disable-line
-            }
+            client.join(words.join(" "));
             break;
 
           case "leave": // fallthrough
           case "part":
-            try {
-              const client = getClient(active.connectionId);
-              // TODO(Zandr Martin/2018-01-14): handle parting from query or
-              // connection
-              if (words.length > 0) {
-                if (words[0].startsWith("#")) {
-                  target = words.shift();
-                }
-                client.part(target, words.join(" "));
-              } else {
-                client.part(target);
+            // TODO(Zandr Martin/2018-01-14): handle parting from query or
+            // connection
+            if (words.length > 0) {
+              if (words[0].startsWith("#")) {
+                target = words.shift();
               }
-            } catch (e) {
-              console.log(e); // eslint-disable-line
+              client.part(target, words.join(" "));
+            } else {
+              client.part(target);
             }
             break;
 
@@ -117,6 +112,10 @@ const mapDispatchToProps = (dispatch: Function) => {
             break;
 
           case "quit":
+            break;
+
+          case "whois":
+            client.whois(message);
             break;
 
           default:
