@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { getClient } from "../irc-state";
 import ChatInputBox from "./ChatInputBox";
 import * as actions from "../actions";
-import type { State } from "../types";
+import type { State, Active } from "../types";
 
 const commands = [
   "close",
@@ -46,11 +46,13 @@ const mapStateToProps = (state: State) => {
   return { active: state.active, commands, nicks, target };
 };
 
-const mapDispatchToProps = (dispatch: Function) => {
+// export for testing because there's lots of logic in here
+// TODO?(Zandr Martin/2018-01-15): move this somewhere else?
+export const mapDispatchToProps = (dispatch: Function) => {
   // TODO(Zandr Martin/2018-01-15): all this stuff needs better (any!) error
   // handling that displays messages to the user
   return {
-    processCommand(text, active, target) {
+    processCommand(text: string, active: Active, target: string) {
       if (text === "") {
         return;
       }
