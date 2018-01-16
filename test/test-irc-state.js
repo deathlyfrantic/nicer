@@ -1,16 +1,15 @@
 import { assert } from "chai";
 import { Client } from "irc";
 import sinon from "sinon";
-import { mapDispatchToProps } from "../src/components/InputContainer";
 import * as actions from "../src/actions";
-import { getClient } from "../src/irc-state";
+import { getClient, createCommandProcessor } from "../src/irc-state";
 
 /* eslint-env mocha */
 
-describe("mapDispatchToProps", () => {
-  describe("processCommand", () => {
+describe("irc-state", () => {
+  describe("command processor (from createCommandProcessor)", () => {
     const dispatch = sinon.spy();
-    const processCommand = mapDispatchToProps(dispatch).processCommand;
+    const processCommand = createCommandProcessor(dispatch);
 
     it("should return early if text parameter is an empty string", () => {
       const result = processCommand("", {}, "bar");
