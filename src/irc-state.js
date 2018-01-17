@@ -33,11 +33,17 @@ export const removeClient = (id: Id): typeof undefined => {
   }
 };
 
+export const addClient = (id: Id, client: irc.Client) => {
+  // this is not intended for normal use, it really only exists for testing
+  clients[id] = client;
+};
+
 export const newClient = (
   id: Id,
   server: string,
   nick: string,
-  dispatch: Function
+  dispatch: Function,
+  connect: boolean = true
 ): irc.Client => {
   const client = new irc.Client(server, nick, {
     stripColors: true,
@@ -98,8 +104,10 @@ export const newClient = (
   client.on("error", message => {
     console.dir(message); // eslint-disable-line
   });
-  client.connect();
-  clients[id] = client;
+  if (connect) {
+    client.connect();
+  }
+  addClient(id, client);
   return client;
 };
 
