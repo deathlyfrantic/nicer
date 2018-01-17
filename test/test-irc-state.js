@@ -85,5 +85,38 @@ describe("irc-state", () => {
         assert.isTrue(fakeClient.join.calledWith("#channel1 #channel2"));
       });
     });
+
+    describe("/part (or /close or /leave)", () => {
+      afterEach(() => {
+        fakeClient.part.reset();
+      });
+
+      it("should call the client's part method with the active channel", () => {
+        processCommand("/part", { ...active, type: "channel" }, target);
+        assert.isTrue(fakeClient.part.calledWith(target));
+        assert.isTrue(fakeClient.part.calledOnce);
+      });
+
+      it("should call the client's part method with a message", () => {
+        processCommand("/part this is my reason", active, target);
+        assert.isTrue(fakeClient.part.calledWith(target, "this is my reason"));
+        assert.isTrue(fakeClient.part.calledOnce);
+      });
+
+      it("should part a specified channel with a reason", () => {
+        processCommand("/leave #foobar some reason", active, target);
+        assert.isTrue(fakeClient.part.calledWith("#foobar", "some reason"));
+        assert.isTrue(fakeClient.part.calledOnce);
+      });
+
+      it("should dispatch a removeQuery action", () => {
+        const stub = sinon.stub(actions, "removeQuery").returns("remove");
+        processCommand("/close", { ...active, type: "query", id: 123 }, target);
+        assert.isTrue(stub.calledWith(123));
+        assert.isTrue(stub.calledOnce);
+        assert.isTrue(dispatch.calledWith("remove"));
+        assert.isTrue(dispatch.calledOnce);
+      });
+    });
   });
 });
