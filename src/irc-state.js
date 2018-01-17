@@ -180,15 +180,15 @@ export const createCommandProcessor = (dispatch: Function) => {
           if (words.length === 0) {
             return;
           }
-          const target = words.shift();
+          const user = words.shift();
           if (words.length > 0) {
             // we're doing like "/msg user123 hello!" so say it to them and
             // let the message event take care of adding the query
-            client.say(target, message.substring(target.length).trimLeft());
+            client.say(user, message.substring(user.length).trimLeft());
           } else {
             // we're doing "/query user123" with no message, so we just want
             // to open a window
-            dispatch(actions.newQuery(active.connectionId, target));
+            dispatch(actions.newQuery(active.connectionId, user));
           }
           break;
         }
@@ -197,7 +197,9 @@ export const createCommandProcessor = (dispatch: Function) => {
           break;
 
         case "whois":
-          client.whois(message);
+          if (words.length > 0) {
+            client.whois(message);
+          }
           break;
 
         default:

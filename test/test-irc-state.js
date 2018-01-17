@@ -118,5 +118,52 @@ describe("irc-state", () => {
         assert.isTrue(dispatch.calledOnce);
       });
     });
+
+    describe("/msg (or /query)", () => {
+      afterEach(() => {
+        fakeClient.say.reset();
+      });
+
+      it("should return early if no user is included", () => {
+        processCommand("/msg", active, target);
+        assert.isTrue(fakeClient.say.notCalled);
+        assert.isTrue(dispatch.notCalled);
+      });
+
+      it("should call the client's say method if provided a message", () => {
+        processCommand("/msg user  hello there!", active, target);
+        assert.isTrue(fakeClient.say.calledWith("user", "hello there!"));
+        assert.isTrue(fakeClient.say.calledOnce);
+      });
+
+      it("should dispatch a newQuery action if no message provided", () => {
+        const stub = sinon.stub(actions, "newQuery").returns("newquery");
+        processCommand("/query user", active, target);
+        assert.isTrue(stub.calledWith(active.connectionId, "user"));
+        assert.isTrue(stub.calledOnce);
+        assert.isTrue(dispatch.calledOnce);
+        assert.isTrue(dispatch.calledWith("newquery"));
+        assert.isTrue(fakeClient.say.notCalled);
+      });
+    });
+
+    describe("/quit", () => {});
+
+    describe("/whois", () => {
+      afterEach(() => {
+        fakeClient.whois.reset();
+      });
+
+      it("should not do anything if not provided with a user", () => {
+        processCommand("/whois", active, target);
+        assert.isTrue(fakeClient.whois.notCalled);
+      });
+
+      it("should call the client's whois method with a user", () => {
+        processCommand("/whois user123", active, target);
+        assert.isTrue(fakeClient.whois.calledWith("user123"));
+        assert.isTrue(fakeClient.whois.calledOnce);
+      });
+    });
   });
 });
