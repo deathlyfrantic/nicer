@@ -162,10 +162,12 @@ export const createCommandProcessor = (dispatch: Function) => {
         case "leave": // fallthrough
         case "part":
           if (words.length > 0) {
+            let remainder = message;
             if (words[0].startsWith("#")) {
               target = words.shift();
+              remainder = message.substring(target.length).trimLeft();
             }
-            client.part(target, words.join(" "));
+            client.part(target, remainder);
           } else if (active.type === "channel") {
             client.part(target);
           } else if (active.type === "query") {
