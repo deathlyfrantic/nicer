@@ -12,6 +12,8 @@ describe("irc-state", () => {
     ircState.addClient(1, fakeClient);
     const dispatch = sinon.spy();
     const processCommand = ircState.createCommandProcessor(dispatch);
+    const active = { connectionId: 1 };
+    const target = "target";
 
     afterEach(() => {
       dispatch.resetHistory();
@@ -42,8 +44,12 @@ describe("irc-state", () => {
     });
 
     describe("/disconnect", () => {
+      after(() => {
+        fakeClient.disconnect.reset();
+      });
+
       it("should call the client's disconnect method", () => {
-        processCommand("/disconnect my message", { connectionId: 1 }, "foobar");
+        processCommand("/disconnect my message", active, target);
         assert.isTrue(fakeClient.disconnect.calledWith("my message"));
       });
 
@@ -62,8 +68,22 @@ describe("irc-state", () => {
           assert.isTrue(stub.calledOnce);
         }
       );
+    });
 
-      fakeClient.disconnect.reset();
+    describe("/join", () => {
+      afterEach(() => {
+        fakeClient.join.reset();
+      });
+
+      it("should return early if no channels are specified", () => {
+        processCommand("/join", active, target);
+        assert.isTrue(fakeClient.join.notCalled);
+      });
+
+      it("should call the client's join method", () => {
+        processCommand("/join #channel1 #channel2", active, target);
+        assert.isTrue(fakeClient.join.calledWith("#channel1 #channel2"));
+      });
     });
   });
 });
