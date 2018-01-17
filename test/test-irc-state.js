@@ -165,5 +165,17 @@ describe("irc-state", () => {
         assert.isTrue(fakeClient.whois.calledOnce);
       });
     });
+
+    describe("say", () => {
+      afterEach(() => {
+        fakeClient.say.reset();
+      });
+
+      it("should call the client's say method with the given text", () => {
+        processCommand("hello world", active, target);
+        assert.isTrue(fakeClient.say.calledWith(target, "hello world"));
+        assert.isTrue(fakeClient.say.calledOnce);
+      });
+    });
   });
 });
