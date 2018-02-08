@@ -19,7 +19,8 @@
     "start": "npm run build && electron .",
     "_flow": "flow --color always --show-all-errors",
     "flow": "npm run _flow | less -FiXR",
-    "test": "npm run _flow && mocha --require babel-register"
+    "test": "npm run _flow && mocha --require babel-register",
+    "stop": "flow stop"
   },
   "devDependencies": {
     "babel": "^6.23.0",
