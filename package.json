@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "classnames": "^2.2.5",
-    "electron": "^1.7.9",
+    "electron": "^1.8.2",
     "irc": "^0.5.2",
     "node-gyp": "^3.6.2",
     "react": "^16.2.0",
@@ -32,13 +32,13 @@
     "babel-preset-stage-2": "^6.24.1",
     "babel-register": "^6.26.0",
     "chai": "^4.1.2",
-    "eslint": "^4.13.1",
-    "eslint-plugin-flowtype": "^2.41.0",
-    "eslint-plugin-react": "^7.5.1",
+    "eslint": "^4.17.0",
+    "eslint-plugin-flowtype": "^2.42.0",
+    "eslint-plugin-react": "^7.6.1",
     "flow-bin": "^0.63.1",
     "mocha": "^4.1.0",
-    "prettier": "^1.9.1",
-    "sinon": "^4.1.5"
+    "prettier": "^1.10.2",
+    "sinon": "^4.2.2"
   },
   "babel": {
     "presets": [
